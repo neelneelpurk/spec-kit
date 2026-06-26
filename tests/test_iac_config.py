@@ -8,6 +8,7 @@ Tests cover:
 """
 
 import pytest
+
 from infrakit_cli.iac_config import IAC_CONFIG, get_iac_choices, get_iac_commands
 
 

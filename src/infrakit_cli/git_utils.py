@@ -10,7 +10,6 @@ from __future__ import annotations
 import os
 import subprocess
 from pathlib import Path
-from typing import Optional, Tuple
 
 from .console import console
 
@@ -37,7 +36,7 @@ def is_git_repo(path: Path = None) -> bool:
 
 def init_git_repo(
     project_path: Path, quiet: bool = False
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """Initialise a git repository at ``project_path`` and create an initial commit.
 
     Args:

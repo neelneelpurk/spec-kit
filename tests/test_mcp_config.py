@@ -8,6 +8,7 @@ Tests cover:
 """
 
 import pytest
+
 from infrakit_cli.mcp_config import MCP_RECIPES
 
 
@@ -148,7 +149,6 @@ class TestMcpConfig:
 
     def test_no_duplicate_tool_names_across_recipes(self):
         """Tool names should be unique across all recipes (best practice)."""
-        all_tools = []
         for recipe_key, recipe in MCP_RECIPES.items():
             for tool in recipe["tools"]:
                 # Tools don't need to be globally unique, but this is just an informational check

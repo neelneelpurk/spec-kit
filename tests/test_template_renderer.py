@@ -15,7 +15,6 @@ from infrakit_cli.template_renderer import (
     write_command,
 )
 
-
 # ---------------------------------------------------------------------------
 # Unit tests for the pure functions.
 # ---------------------------------------------------------------------------
@@ -351,7 +350,6 @@ def test_overwrite_is_idempotent_when_false(tmp_path: Path):
         project, ai_assistant="claude", iac_tool="terraform", script_variant="sh"
     )
     setup_path = project / ".claude" / "commands" / "infrakit:setup.md"
-    first_mtime = setup_path.stat().st_mtime
     # Tamper with the file, then re-materialise without overwrite.
     setup_path.write_text("TAMPERED", encoding="utf-8")
     materialize_project(

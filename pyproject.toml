@@ -97,6 +97,18 @@ include = [
     "LICENSE",
 ]
 
+[tool.ruff]
+# Pin behaviour so a contributor's editor, the git hook, and CI all agree.
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Ruff's sensible defaults (E4/E7/E9 + F) plus import sorting (I), whitespace
+# warnings (W), and pyupgrade (UP). Line length is intentionally not enforced
+# (no E501) — long prompt strings and tables are common in this codebase.
+select = ["E4", "E7", "E9", "F", "W", "I", "UP"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

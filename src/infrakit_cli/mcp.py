@@ -27,7 +27,7 @@ def _read_mcp_json(path: Path) -> dict:
     if not path.exists():
         return {"mcpServers": {}}
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         if not isinstance(data, dict):
             return {"mcpServers": {}}

@@ -10,6 +10,7 @@ Tests cover:
 """
 
 import pytest
+
 from infrakit_cli.agent_config import AGENT_CONFIG
 
 

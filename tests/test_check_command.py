@@ -8,10 +8,11 @@ Tests cover:
 """
 
 from unittest.mock import patch
+
 from typer.testing import CliRunner
+
 from infrakit_cli import app
 from infrakit_cli.agent_config import AGENT_CONFIG
-
 
 runner = CliRunner()
 
@@ -32,7 +33,7 @@ class TestCheckCommand:
 
         with patch("infrakit_cli.cli.check_tool") as mock_check:
             mock_check.return_value = True
-            result = runner.invoke(app, ["check"])
+            runner.invoke(app, ["check"])
 
             # Verify at least some agents were checked
             assert mock_check.call_count >= len(cli_agents)

@@ -15,7 +15,6 @@ from pathlib import Path
 
 import pytest
 
-
 # Locate the templates/iac/terraform directory relative to this test file.
 REPO_ROOT = Path(__file__).parent.parent
 TERRAFORM_TEMPLATES_DIR = REPO_ROOT / "templates" / "iac" / "terraform"

@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "SpecKitDevContainer",
+	"name": "InfraKit Dev Container",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/python:3.13-trixie", // based on Debian "Trixie" (13)
 	"features": {
@@ -28,7 +28,7 @@
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
-	8080 // for Spec-Kit documentation site
+	8080 // for the DocFX documentation site (docs/)
   ],
   "containerUser": "devcontainer",
   "updateRemoteUserUID": true,
@@ -57,20 +57,7 @@
 	],
       "settings": {
 		"debug.javascript.autoAttachFilter": "disabled", // fix running commands in integrated terminal
-
-		// Specify settings for Github Copilot
-		"git.autofetch": true,
-		"chat.promptFilesRecommendations": {
-			"speckit.constitution": true,
-			"speckit.specify": true,
-			"speckit.plan": true,
-			"speckit.tasks": true,
-			"speckit.implement": true
-		},
-		"chat.tools.terminal.autoApprove": {
-			".specify/scripts/bash/": true,
-			".specify/scripts/powershell/": true
-		}
+		"git.autofetch": true
       }
     }
   }

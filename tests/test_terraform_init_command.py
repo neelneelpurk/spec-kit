@@ -24,7 +24,6 @@ from typer.testing import CliRunner
 from infrakit_cli import app, initialize_iac_config
 from infrakit_cli.iac_config import IAC_CONFIG
 
-
 runner = CliRunner()
 
 

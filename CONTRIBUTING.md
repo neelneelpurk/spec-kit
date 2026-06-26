@@ -62,9 +62,16 @@ A [`Makefile`](./Makefile) wraps the common tasks (run `make` to list them):
 | `make setup` | Install dependencies into a local venv (`uv sync`) |
 | `make hooks` | Enable the repo git hooks (lint on commit, tests on push) |
 | `make test` | Run the full pytest suite (offline) |
+| `make cov` | Run the suite with a coverage report |
+| `make lint` / `make fix` | Lint with ruff (`fix` auto-applies safe fixes) |
 | `make check` | Everything CI runs: `ruff` + `markdownlint` + `pytest` |
 | `make build` | Build the wheel and sdist |
 | `make e2e` | Offline end-to-end `infrakit init` smoke test |
+
+Lint rules are pinned in `pyproject.toml` (`[tool.ruff]`) and editor settings in
+`.editorconfig`, so your editor, the git hooks, and CI all agree. The quickest
+way to get a ready-to-hack environment is the [dev container](./.devcontainer/) —
+it installs the agent CLIs, syncs dependencies, and enables the hooks for you.
 
 See [TESTING.md](./TESTING.md) for the full testing guide.
 

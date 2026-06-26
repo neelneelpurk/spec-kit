@@ -3,7 +3,7 @@
 # contributors and CI share one source of truth.
 
 .DEFAULT_GOAL := help
-.PHONY: help setup hooks test lint lint-md check build e2e clean
+.PHONY: help setup hooks test cov lint fix lint-md check build e2e clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -19,8 +19,14 @@ hooks: ## Enable the repo git hooks (.githooks/pre-commit, pre-push)
 test: ## Run the full pytest suite (offline, no network)
 	uv run pytest
 
-lint: ## Lint the Python source with ruff
-	uvx ruff check src/
+cov: ## Run the suite with a coverage report
+	uv run pytest --cov --cov-report=term-missing
+
+lint: ## Lint the Python (ruff, same as CI)
+	uvx ruff check src/ tests/
+
+fix: ## Auto-fix lint issues (ruff --fix)
+	uvx ruff check --fix src/ tests/
 
 lint-md: ## Lint Markdown with markdownlint-cli2 (what CI enforces)
 	npx markdownlint-cli2 "**/*.md"

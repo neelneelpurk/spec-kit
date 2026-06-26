@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -34,7 +33,7 @@ def initialize_iac_config(
     iac_tool: str,
     ai_assistant: str,
     *,
-    tracker: Optional[StepTracker] = None,
+    tracker: StepTracker | None = None,
 ) -> None:
     """Set up IaC-specific configuration, commands, agents, and documentation.
 

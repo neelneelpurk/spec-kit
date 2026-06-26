@@ -5,7 +5,6 @@ from typer.testing import CliRunner
 
 from infrakit_cli import app
 
-
 runner = CliRunner()
 
 

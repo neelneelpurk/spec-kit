@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -85,7 +84,7 @@ def _get_skills_dir(project_path: Path, selected_ai: str) -> Path:
 
 
 def ensure_project_context_from_template(
-    project_path: Path, tracker: Optional[StepTracker] = None
+    project_path: Path, tracker: StepTracker | None = None
 ) -> None:
     """Seed ``.infrakit/memory/project-context.md`` from the bundled template
     if it doesn't exist yet. Existing user content is always preserved.
@@ -126,7 +125,7 @@ def ensure_project_context_from_template(
 def install_ai_skills(
     project_path: Path,
     selected_ai: str,
-    tracker: Optional[StepTracker] = None,
+    tracker: StepTracker | None = None,
 ) -> bool:
     """Install prompt-template files from ``templates/commands/`` as agent skills.
 

@@ -26,6 +26,11 @@ standard (no CLI behaviour change, so no release is cut by these).
 - **Git hooks** (`.githooks/pre-commit`, `.githooks/pre-push`) — lint staged
   Python/Markdown on commit, run the test suite on push. Opt-in via `make hooks`;
   both degrade gracefully when tooling is absent.
+- **Developer-experience tooling.** `.editorconfig`; an explicit ruff config in
+  `pyproject.toml` (`[tool.ruff]` — deterministic linting with import sorting and
+  pyupgrade, replacing CI's reliance on ruff defaults); a reusable
+  `setup-python-uv` composite GitHub Action; a `.devcontainer/README.md`; and
+  `make cov` / `make lint` / `make fix` targets.
 
 ### Changed
 
@@ -35,6 +40,9 @@ standard (no CLI behaviour change, so no release is cut by these).
   walkthrough moved into a collapsible. Content is unchanged in substance.
 - **`SUPPORT.md`** expanded to the structured "before / where / what / expect"
   form, and `CONTRIBUTING.md` now lists the `make` targets and links `TESTING.md`.
+- **Dev container** now syncs dependencies and enables the git hooks on create
+  (ready-to-hack), and the `test.yml` CI workflow uses the new composite setup
+  action instead of repeating the uv/Python setup per job.
 
 ### Fixed
 
@@ -42,6 +50,12 @@ standard (no CLI behaviour change, so no release is cut by these).
   at `github/spec-kit` (including a "Security Issues" link to spec-kit's policy);
   they now point at InfraKit's own README, `CONTRIBUTING.md`, `SUPPORT.md`, and
   `SECURITY.md`.
+- **Dev container spec-kit leftovers** — it was named `SpecKitDevContainer` and
+  carried spec-kit-only VS Code settings (`speckit.*` prompt recommendations and
+  `.specify/scripts/` auto-approve paths that don't exist in InfraKit). Renamed
+  and trimmed to InfraKit-relevant settings.
+- **Test-suite lint** — removed unused assignments and a `lambda` assignment so
+  `tests/` passes the new ruff config.
 
 ## [1.0.0] - 2026-05-31
 
