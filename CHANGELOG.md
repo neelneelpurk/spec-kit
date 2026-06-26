@@ -9,7 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-*Nothing yet.*
+Repository packaging and presentation are brought up to open-source community
+standard (no CLI behaviour change, so no release is cut by these).
+
+### Added
+
+- **Community-health files.** `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1 —
+  also fixes the previously-broken link from `CONTRIBUTING.md`), `SECURITY.md`
+  (private vulnerability reporting, supported versions, scope, release
+  integrity), `GEMINI.md` (Gemini CLI agent guidance pointing at `AGENTS.md` /
+  `CLAUDE.md`), and `TESTING.md` (how to run the offline suite, what it covers,
+  the eval harness, and how to add a test).
+- **`Makefile`** — a self-documenting task runner (`make` lists targets):
+  `setup`, `hooks`, `test`, `lint`, `lint-md`, `check`, `build`, `e2e`, `clean`,
+  wrapping the commands already documented in `CLAUDE.md`.
+- **Git hooks** (`.githooks/pre-commit`, `.githooks/pre-push`) — lint staged
+  Python/Markdown on commit, run the test suite on push. Opt-in via `make hooks`;
+  both degrade gracefully when tooling is absent.
+
+### Changed
+
+- **README** restructured for scannability — a hero with badges and a nav bar, a
+  mermaid pipeline diagram, an embedded demo, a "What you get" summary, a
+  compact quickstart, a repository-layout map, and the deep step-by-step
+  walkthrough moved into a collapsible. Content is unchanged in substance.
+- **`SUPPORT.md`** expanded to the structured "before / where / what / expect"
+  form, and `CONTRIBUTING.md` now lists the `make` targets and links `TESTING.md`.
+
+### Fixed
+
+- **Issue-template contact links** (`.github/ISSUE_TEMPLATE/config.yml`) pointed
+  at `github/spec-kit` (including a "Security Issues" link to spec-kit's policy);
+  they now point at InfraKit's own README, `CONTRIBUTING.md`, `SUPPORT.md`, and
+  `SECURITY.md`.
 
 ## [1.0.0] - 2026-05-31
 

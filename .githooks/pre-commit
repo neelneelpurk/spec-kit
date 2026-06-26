@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# InfraKit pre-commit hook: fast gates only (lint). The heavier pytest suite
+# runs in .githooks/pre-push. Enable with `make hooks`.
+set -euo pipefail
+
+staged_py=$(git diff --cached --name-only --diff-filter=ACM -- '*.py' || true)
+staged_md=$(git diff --cached --name-only --diff-filter=ACM -- '*.md' || true)
+
+if [ -z "$staged_py" ] && [ -z "$staged_md" ]; then
+  exit 0
+fi
+
+# Ruff over staged Python. Skipped (with a warning) if ruff isn't available so
+# contributors without the tool aren't blocked; CI still enforces it.
+if [ -n "$staged_py" ]; then
+  if command -v uvx >/dev/null 2>&1; then
+    echo "$staged_py" | xargs uvx ruff check
+  elif command -v ruff >/dev/null 2>&1; then
+    echo "$staged_py" | xargs ruff check
+  else
+    echo "warning: ruff/uvx not on PATH — skipped Python lint. CI will enforce it." >&2
+  fi
+fi
+
+# Markdownlint over staged Markdown — this is the gate CI runs in lint.yml.
+if [ -n "$staged_md" ]; then
+  if command -v npx >/dev/null 2>&1; then
+    echo "$staged_md" | xargs npx --yes markdownlint-cli2
+  else
+    echo "warning: npx not on PATH — skipped Markdown lint. CI will enforce it." >&2
+  fi
+fi

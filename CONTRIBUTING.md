@@ -53,6 +53,21 @@ Here are a few things you can do that will increase the likelihood of your pull 
 - Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 - Test your changes against the spec → plan → implement → review pipeline to ensure compatibility with all supported IaC tools (Crossplane, Terraform, and CloudFormation).
 
+## Useful commands
+
+A [`Makefile`](./Makefile) wraps the common tasks (run `make` to list them):
+
+| Command | What it does |
+|---------|--------------|
+| `make setup` | Install dependencies into a local venv (`uv sync`) |
+| `make hooks` | Enable the repo git hooks (lint on commit, tests on push) |
+| `make test` | Run the full pytest suite (offline) |
+| `make check` | Everything CI runs: `ruff` + `markdownlint` + `pytest` |
+| `make build` | Build the wheel and sdist |
+| `make e2e` | Offline end-to-end `infrakit init` smoke test |
+
+See [TESTING.md](./TESTING.md) for the full testing guide.
+
 ## Development workflow
 
 When working on infrakit:
