@@ -9,7 +9,6 @@ file is just argument parsing and orchestration.
 
 from __future__ import annotations
 
-import json
 import os
 import shlex
 import shutil
@@ -17,7 +16,6 @@ import sys
 from pathlib import Path
 
 import typer
-import yaml
 from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
@@ -29,15 +27,9 @@ from .console import console
 from .git_utils import init_git_repo, is_git_repo
 from .iac_config import IAC_CONFIG, get_iac_choices
 from .interactive import select_with_arrows
-from .mcp import (
-    _build_mcp_markdown_block,
-    _build_mcp_server_entry,
-    _read_mcp_json,
-    _update_mcp_use_table,
-)
-from .mcp_config import MCP_RECIPES
+from .mcp import mcp_app
 from .skills import ensure_project_context_from_template, install_ai_skills
-from .tools import SCRIPT_TYPE_CHOICES, check_tool, find_project_root
+from .tools import SCRIPT_TYPE_CHOICES, check_tool
 from .tracker import StepTracker
 
 app = typer.Typer(
@@ -47,6 +39,11 @@ app = typer.Typer(
     invoke_without_command=True,
     cls=BannerGroup,
 )
+
+# `infrakit mcp [add|list|remove|doctor]` lives in the mcp module (deep module:
+# the MCP command surface ships with the MCP logic). Bare `infrakit mcp` still
+# runs the interactive installer via the sub-app's callback.
+app.add_typer(mcp_app, name="mcp")
 
 
 @app.callback()
@@ -612,136 +609,6 @@ def check():
 
     if not any(agent_results.values()):
         console.print("[dim]Tip: Install an AI assistant for the best experience[/dim]")
-
-
-@app.command()
-def mcp():
-    """Install a pre-defined MCP server recipe into your agent's MCP config."""
-
-    show_banner()
-
-    project_root = find_project_root()
-    if project_root is None:
-        console.print(
-            Panel(
-                "No InfraKit project found.\n\n"
-                "Run [cyan]infrakit init[/cyan] first, or navigate to an existing project directory.",
-                title="[red]Not in an InfraKit Project[/red]",
-                border_style="red",
-                padding=(1, 2),
-            )
-        )
-        raise typer.Exit(1)
-
-    config_path = project_root / ".infrakit" / "config.yaml"
-    try:
-        project_config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-    except (OSError, Exception) as e:
-        console.print(f"[red]Error reading .infrakit/config.yaml:[/red] {e}")
-        raise typer.Exit(1)
-
-    ai_assistant = project_config.get("ai_assistant")
-    if not ai_assistant:
-        console.print("[red]Error:[/red] 'ai_assistant' not found in .infrakit/config.yaml")
-        raise typer.Exit(1)
-
-    agent_cfg = AGENT_CONFIG.get(ai_assistant, {})
-    agent_name = agent_cfg.get("name", ai_assistant)
-
-    console.print(f"[cyan]Agent:[/cyan] {agent_name} [dim]({ai_assistant})[/dim]")
-    console.print(f"[cyan]Project:[/cyan] [dim]{project_root}[/dim]\n")
-
-    recipe_choices = {k: v["display_name"] for k, v in MCP_RECIPES.items()}
-    selected_key = select_with_arrows(recipe_choices, "Choose an MCP recipe to install:")
-
-    mcp_install_path = agent_cfg.get("mcp_install_path")
-
-    tracker = StepTracker(f"Install MCP: {selected_key}")
-    tracker.add("resolve", "Resolve config path")
-    tracker.add("merge", "Merge MCP entry")
-    tracker.add("write", "Write config file")
-    tracker.add("index", "Update mcp-use.md index")
-
-    newly_installed = False
-
-    with Live(tracker.render(), console=console, refresh_per_second=8, transient=True) as live:
-        tracker.attach_refresh(lambda: live.update(tracker.render()))
-
-        if mcp_install_path:
-            # Path A: native JSON config (Claude, Cursor).
-            mcp_json_path = project_root / mcp_install_path
-            tracker.complete("resolve", str(mcp_json_path.relative_to(project_root)))
-
-            tracker.start("merge")
-            existing = _read_mcp_json(mcp_json_path)
-            if selected_key in existing["mcpServers"]:
-                tracker.skip("merge", f"{selected_key} already installed")
-                tracker.skip("write", "no changes needed")
-                tracker.skip("index", "no changes needed")
-            else:
-                existing["mcpServers"][selected_key] = _build_mcp_server_entry(selected_key)
-                tracker.complete("merge", f"added {selected_key}")
-
-                tracker.start("write")
-                try:
-                    mcp_json_path.parent.mkdir(parents=True, exist_ok=True)
-                    with open(mcp_json_path, "w", encoding="utf-8") as f:
-                        json.dump(existing, f, indent=2)
-                        f.write("\n")
-                    tracker.complete("write", str(mcp_json_path.relative_to(project_root)))
-                    newly_installed = True
-                except OSError as e:
-                    tracker.error("write", str(e))
-                    raise typer.Exit(1)
-
-        else:
-            # Path B: markdown fallback (all other agents).
-            md_path = project_root / ".infrakit" / "mcp-servers.md"
-            tracker.complete("resolve", str(md_path.relative_to(project_root)))
-
-            tracker.start("merge")
-            existing_content = md_path.read_text(encoding="utf-8") if md_path.exists() else ""
-            if selected_key in existing_content:
-                tracker.skip("merge", f"{selected_key} already documented")
-                tracker.skip("write", "no changes needed")
-                tracker.skip("index", "no changes needed")
-            else:
-                tracker.complete("merge", "building markdown entry")
-                tracker.start("write")
-                try:
-                    md_block = _build_mcp_markdown_block(
-                        selected_key, MCP_RECIPES[selected_key], agent_name
-                    )
-                    if not md_path.exists():
-                        header = (
-                            "# MCP Server Setup\n\n"
-                            f"> **{agent_name}** does not support a per-project MCP config file.\n"
-                            "> Configure these MCP servers manually in your agent's global settings.\n\n"
-                        )
-                        md_path.write_text(header + md_block, encoding="utf-8")
-                    else:
-                        with open(md_path, "a", encoding="utf-8") as f:
-                            f.write("\n" + md_block)
-                    tracker.complete("write", str(md_path.relative_to(project_root)))
-                    newly_installed = True
-                except OSError as e:
-                    tracker.error("write", str(e))
-                    raise typer.Exit(1)
-
-        if newly_installed:
-            tracker.start("index")
-            try:
-                _update_mcp_use_table(project_root, selected_key)
-                tracker.complete("index", ".infrakit/mcp-use.md")
-            except OSError as e:
-                tracker.error("index", str(e))
-
-    console.print(tracker.render())
-
-    if newly_installed:
-        console.print(f"\n[bold green]MCP recipe installed:[/bold green] {selected_key}")
-    else:
-        console.print(f"\n[dim]{selected_key} was already configured — nothing changed.[/dim]")
 
 
 @app.command()

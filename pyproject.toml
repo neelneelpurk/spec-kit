@@ -55,6 +55,7 @@ dependencies = [
     "rich",
     "readchar",
     "pyyaml>=6.0",
+    "tomlkit>=0.13",
 ]
 
 [project.urls]
