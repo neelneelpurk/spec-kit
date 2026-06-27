@@ -1,7 +1,7 @@
 """MCP provisioning — render and install MCP servers into each agent's config.
 
-InfraKit configures five agents whose MCP config formats genuinely differ, so
-each agent is a small **adapter** behind one interface:
+InfraKit provisions MCP for the four agents whose config format it knows; each
+is a small **adapter** behind one interface:
 
 * :func:`add_server` / :func:`list_servers` / :func:`remove_server` are pure
   text transforms (text in, text out) — unit-tested without the filesystem.
@@ -16,12 +16,13 @@ claude        ``.mcp.json``                 JSON   ``mcpServers``         ``type
 gemini        ``.gemini/settings.json``     JSON   ``mcpServers``         ``httpUrl``
 codex         ``.codex/config.toml``        TOML   ``[mcp_servers.*]``    ``url``
 copilot       ``.vscode/mcp.json``          JSON   ``servers`` + inputs   ``type:"http"`` + ``url``
-generic       ``.infrakit/mcp-servers.md``  MD     —                     — (documented manually)
 ============  ============================  =====  ====================  =========================
 
-Transports follow the current MCP spec (stdio + Streamable HTTP); ``sse`` is
-accepted as legacy. Secrets are referenced (``${NAME}`` / ``${input:...}``),
-never written to disk.
+The ``generic`` (bring-your-own) agent has no known config format, so MCP
+provisioning is not available for it — :func:`supports_mcp` returns False and the
+CLI reports it. Transports follow the current MCP spec (stdio + Streamable HTTP);
+``sse`` is accepted as legacy. Secrets are referenced (``${NAME}`` /
+``${input:...}``), never written to disk.
 """
 
 from __future__ import annotations
@@ -57,18 +58,23 @@ _TARGETS: dict[str, tuple[str, str]] = {
     "gemini": (".gemini/settings.json", "json-gemini"),
     "codex": (".codex/config.toml", "toml-codex"),
     "copilot": (".vscode/mcp.json", "json-vscode"),
-    "generic": (".infrakit/mcp-servers.md", "markdown"),
 }
 
 
+def supports_mcp(agent: str) -> bool:
+    """True when InfraKit can write ``agent``'s MCP config directly."""
+    return agent in _TARGETS
+
+
 def target_for(agent: str) -> tuple[str, str]:
-    """Return ``(project-relative path, format family)`` for an agent."""
-    return _TARGETS.get(agent, _TARGETS["generic"])
+    """Return ``(project-relative path, format family)`` for an agent.
 
-
-def is_manual(agent: str) -> bool:
-    """True when the agent has no canonical config file (documented fallback)."""
-    return target_for(agent)[1] == "markdown"
+    Raises ``ValueError`` for agents InfraKit can't provision (e.g. ``generic`` —
+    bring-your-own, so its config format is unknown).
+    """
+    if agent not in _TARGETS:
+        raise ValueError(f"MCP provisioning is not supported for agent '{agent}'")
+    return _TARGETS[agent]
 
 
 # ---------------------------------------------------------------------------
@@ -216,18 +222,6 @@ def _codex_add(text: str | None, name: str, table: dict) -> str:
     return tomlkit.dumps(doc)
 
 
-def _markdown_add(text: str | None, server: McpServer, agent_name: str) -> str:
-    block = _build_mcp_markdown_block(server.key, _server_to_recipe(server), agent_name)
-    if not text:
-        header = (
-            "# MCP Server Setup\n\n"
-            f"> **{agent_name}** has no per-project MCP config file.\n"
-            "> Configure these servers in your agent's global MCP settings.\n\n"
-        )
-        return header + block
-    return text.rstrip("\n") + "\n\n" + block
-
-
 # ---------------------------------------------------------------------------
 # Public adapter interface (dispatch on agent's format family).
 # ---------------------------------------------------------------------------
@@ -245,7 +239,7 @@ def add_server(agent: str, text: str | None, server: McpServer) -> str:
     if fam == "json-vscode":
         entry, inputs = _vscode_entry(server)
         return _vscode_add(text, server.key, entry, inputs)
-    return _markdown_add(text, server, AGENT_CONFIG.get(agent, {}).get("name", agent))
+    raise ValueError(f"unknown MCP format family: {fam}")
 
 
 def list_servers(agent: str, text: str | None) -> list[str]:
@@ -257,8 +251,7 @@ def list_servers(agent: str, text: str | None) -> list[str]:
         return sorted((_json_load(text).get("servers") or {}).keys())
     if fam == "toml-codex":
         return sorted((_toml_doc(text).get("mcp_servers") or {}).keys())
-    # markdown: server keys are the "## <key>" headings.
-    return sorted(line[3:].strip() for line in (text or "").splitlines() if line.startswith("## "))
+    raise ValueError(f"unknown MCP format family: {fam}")
 
 
 def remove_server(agent: str, text: str | None, name: str) -> str:
@@ -280,8 +273,7 @@ def remove_server(agent: str, text: str | None, name: str) -> str:
         if servers is not None and name in servers:
             del servers[name]
         return tomlkit.dumps(doc)
-    # markdown removal is not supported (manual file).
-    return text or ""
+    raise ValueError(f"unknown MCP format family: {fam}")
 
 
 # ---------------------------------------------------------------------------
@@ -317,9 +309,9 @@ def installed(project_root: Path, agent: str) -> list[str]:
 
 def uninstall(project_root: Path, agent: str, name: str) -> bool:
     """Remove ``name`` from ``agent``'s config. Returns True when something changed."""
-    relpath, fam = target_for(agent)
+    relpath, _ = target_for(agent)
     path = project_root / relpath
-    if not path.exists() or fam == "markdown":
+    if not path.exists():
         return False
     text = path.read_text(encoding="utf-8")
     if name not in list_servers(agent, text):
@@ -331,50 +323,6 @@ def uninstall(project_root: Path, agent: str, name: str) -> bool:
 # ---------------------------------------------------------------------------
 # Installed-server index (.infrakit/mcp-use.md) and legacy helpers.
 # ---------------------------------------------------------------------------
-
-
-def _server_to_recipe(server: McpServer) -> dict:
-    """Recipe-shaped dict for the markdown block builder."""
-    return {
-        "display_name": server.display_name,
-        "description": server.description,
-        "type": server.transport,
-        "command": server.command,
-        "args": list(server.args),
-        "url": server.url,
-    }
-
-
-def _build_mcp_markdown_block(recipe_key: str, recipe: dict, agent_name: str) -> str:
-    """Build a copy-paste markdown block for agents without a native MCP file."""
-    lines = [
-        f"## {recipe_key}",
-        "",
-        f"**{recipe.get('display_name', recipe_key)}**",
-        "",
-        recipe.get("description", ""),
-        "",
-        f"Configure in your {agent_name} global MCP settings:",
-        "",
-        "```json",
-    ]
-    if recipe.get("type") in (HTTP, SSE):
-        lines += [
-            f'"{recipe_key}": {{',
-            f'  "type": "{recipe["type"]}",',
-            f'  "url": "{recipe["url"]}"',
-            "}",
-        ]
-    else:
-        lines += [
-            f'"{recipe_key}": {{',
-            '  "type": "stdio",',
-            f'  "command": "{recipe.get("command", "")}",',
-            f'  "args": {json.dumps(recipe.get("args", []))}',
-            "}",
-        ]
-    lines += ["```", ""]
-    return "\n".join(lines)
 
 
 def _update_index(project_root: Path, server: McpServer) -> None:
@@ -457,6 +405,13 @@ def _resolve_project_agent(agent_override: str | None) -> tuple[Path, str]:
         _fail("No agent found. Pass [cyan]--agent[/cyan] or set ai_assistant in config.yaml.")
     if agent not in AGENT_CONFIG:
         _fail(f"Unknown agent '{agent}'. Choose one of: {', '.join(AGENT_CONFIG)}.")
+    if not supports_mcp(agent):
+        _fail(
+            f"MCP provisioning isn't available for the '{agent}' agent.\n\n"
+            "InfraKit writes native MCP configs for claude, codex, gemini, and copilot. "
+            "For a bring-your-own agent, configure MCP servers in your agent's own settings.",
+            "Unsupported agent",
+        )
     return project_root, agent
 
 
@@ -559,8 +514,6 @@ def mcp_remove(
 ) -> None:
     """Remove an MCP server from the agent's config."""
     project_root, agent = _resolve_project_agent(agent)
-    if is_manual(agent):
-        _fail("This agent uses a manual markdown file — edit .infrakit/mcp-servers.md by hand.")
     if uninstall(project_root, agent, name):
         console.print(f"[green]✓[/green] removed {name}")
     else:

@@ -6,7 +6,8 @@
 * **Area:** `infrakit mcp`, `mcp.py`, `mcp_config.py`, `agent_config.py`
 
 > **Implementation note.** Shipped: per-agent writers for Claude/Codex/Gemini/
-> Copilot + generic markdown (FR-1), stdio + Streamable HTTP with the DeepWiki
+> Copilot (FR-1) — the `generic` bring-your-own agent is reported as unsupported
+> (no canonical config format); stdio + Streamable HTTP with the DeepWiki
 > fix (FR-2), env/secret reference handling (FR-3), `infrakit mcp add [--agent]
 > [--all]` + custom `--command/--url` (FR-4, FR-5), `list`/`remove`/`doctor`
 > (FR-6), and a `server.json`-aligned `McpServer` model (FR-7). Deferred: live
@@ -114,7 +115,7 @@ know each shape:
 | Codex CLI | `.codex/config.toml` (or `~/.codex/config.toml`) | TOML | `[mcp_servers.<name>]` | `url` | `env` table |
 | Gemini CLI | `.gemini/settings.json` | JSON | `mcpServers` | **`httpUrl`** (streamable); `url` (sse) | `env`, `headers` |
 | GitHub Copilot / VS Code | `.vscode/mcp.json` | JSON | **`servers`** + `inputs` | `type:"http"`, `url` | `${input:...}` / `${env:...}` |
-| generic | `.infrakit/mcp-servers.md` | Markdown | — | — | manual (documented) |
+| generic | — (no canonical format) | — | — | — | not provisioned |
 
 Three traps a single shared writer would hit: **file format** (Codex is TOML),
 the **remote URL field** (`url` vs Gemini's `httpUrl`), and the **top-level key**
@@ -157,8 +158,8 @@ keeps one renderer that can target any agent.
 
 * **FR-1 — Per-agent writers.** Provision the selected server into the active
   agent's real config (table above). Each agent is its own adapter behind a shared
-  interface. `generic` keeps the documented Markdown fallback (it has no canonical
-  file by definition).
+  interface. The `generic` bring-your-own agent has no canonical config format, so
+  it is **not provisionable** — `infrakit mcp` reports it rather than guessing.
 * **FR-2 — Transport model.** First-class `stdio` and `http` (Streamable HTTP).
   Accept `sse` as input but render it per-agent and mark it deprecated. Map the
   remote URL to the correct per-agent field (`url` vs `httpUrl`). Fix the
@@ -209,11 +210,11 @@ behind a real seam.
                 │  provision(agent, server)   │   provision() · render(agent, server)
                 │  render(agent, server)      │   list() · remove() · verify()
                 └─────────────┬──────────────┘
-        ┌──────────┬──────────┼───────────┬────────────┐
-        ▼          ▼          ▼           ▼            ▼
-   claude       codex      gemini      copilot      generic
-  .mcp.json   config.toml settings.json .vscode/    mcp-servers.md
-   (JSON)       (TOML)      (JSON)      mcp.json      (doc)
+        ┌──────────┬──────────┼───────────┐
+        ▼          ▼          ▼           ▼
+   claude       codex      gemini      copilot
+  .mcp.json   config.toml settings.json .vscode/
+   (JSON)       (TOML)      (JSON)      mcp.json
 ```
 
 * **One interface, N adapters.** `render(agent, server) -> (path, content)` is the
@@ -253,8 +254,9 @@ writers are the textbook "two adapters justify the seam" case.
   (`~/.codex/config.toml`), others off a project file. *Open question:* does
   InfraKit write project-scope only (safe, committable, matches its model) and
   document user-scope, or also offer `--scope user`? Recommend project-scope first.
-* **`generic` agent.** No canonical file — the Markdown fallback stays, but should
-  emit the modern shape and be clearly labelled as manual.
+* **`generic` agent.** No canonical config format, so it is not provisioned;
+  `infrakit mcp` reports it as unsupported. Users of a bring-your-own agent wire
+  MCP into their own agent's settings.
 * **Secret UX divergence.** `${input:...}` (VS Code) vs `${env:VAR}` (Claude) vs
   TOML `env` (Codex) differ. *Mitigation:* the adapter owns the per-agent syntax;
   the recipe only declares intent (`is_secret`).

@@ -14,10 +14,10 @@ import pytest
 from infrakit_cli.mcp import (
     add_server,
     installed,
-    is_manual,
     list_servers,
     provision,
     remove_server,
+    supports_mcp,
     target_for,
     uninstall,
 )
@@ -29,19 +29,20 @@ DEEPWIKI = server_from_recipe("deepwiki")  # http (remote)
 
 class TestTargets:
     def test_each_agent_has_a_distinct_target(self):
-        paths = {a: target_for(a)[0] for a in ("claude", "gemini", "codex", "copilot", "generic")}
+        paths = {a: target_for(a)[0] for a in ("claude", "gemini", "codex", "copilot")}
         assert paths == {
             "claude": ".mcp.json",
             "gemini": ".gemini/settings.json",
             "codex": ".codex/config.toml",
             "copilot": ".vscode/mcp.json",
-            "generic": ".infrakit/mcp-servers.md",
         }
 
-    def test_only_generic_is_manual(self):
-        assert is_manual("generic") is True
+    def test_generic_is_unsupported(self):
+        assert supports_mcp("generic") is False
         for agent in ("claude", "gemini", "codex", "copilot"):
-            assert is_manual(agent) is False
+            assert supports_mcp(agent) is True
+        with pytest.raises(ValueError):
+            target_for("generic")
 
 
 class TestStdioRendering:

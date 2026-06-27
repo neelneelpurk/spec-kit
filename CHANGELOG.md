@@ -17,9 +17,10 @@ the rest got a manual copy-paste block.
 
 - **Per-agent config writers** — Claude `.mcp.json`, Codex `.codex/config.toml`
   (`[mcp_servers.*]`), Gemini `.gemini/settings.json` (`httpUrl` for Streamable
-  HTTP), Copilot `.vscode/mcp.json` (`servers` + `inputs`); `generic` keeps a
-  documented markdown fallback. Each agent is one adapter behind a single
-  `add_server` / `list_servers` / `remove_server` interface.
+  HTTP), Copilot `.vscode/mcp.json` (`servers` + `inputs`). Each agent is one
+  adapter behind a single `add_server` / `list_servers` / `remove_server`
+  interface. The `generic` (bring-your-own) agent is not provisionable —
+  `infrakit mcp` reports it rather than guessing a config format.
 - **Modern transports** — stdio + Streamable HTTP (`type: "http"`); `sse` is
   accepted as legacy. The DeepWiki recipe is corrected from `sse` to `http`.
 - **Non-interactive + lifecycle** — `infrakit mcp add <recipe> [--agent] [--all]`,

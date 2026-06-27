@@ -30,7 +30,6 @@ from .console import console
 from .git_utils import init_git_repo, is_git_repo
 from .interactive import get_key, select_with_arrows
 from .mcp import (
-    _build_mcp_markdown_block,
     _build_mcp_server_entry,
     _read_mcp_json,
     _update_mcp_use_table,
@@ -87,7 +86,6 @@ __all__ = [
     "McpServer",
     "EnvVar",
     "MCP_RECIPES",
-    "_build_mcp_markdown_block",
     "_build_mcp_server_entry",
     "_read_mcp_json",
     "_update_mcp_use_table",
