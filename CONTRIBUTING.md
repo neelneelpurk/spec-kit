@@ -63,7 +63,8 @@ A [`Makefile`](./Makefile) wraps the common tasks (run `make` to list them):
 | `make hooks` | Enable the repo git hooks (lint on commit, tests on push) |
 | `make test` | Run the full pytest suite (offline) |
 | `make cov` | Run the suite with a coverage report |
-| `make lint` / `make fix` | Lint with ruff (`fix` auto-applies safe fixes) |
+| `make lint` / `make fix` | Lint + format-check with ruff (`fix` auto-applies fixes and formats) |
+| `make format` | Format the code with `ruff format` |
 | `make check` | Everything CI runs: `ruff` + `markdownlint` + `pytest` |
 | `make build` | Build the wheel and sdist |
 | `make e2e` | Offline end-to-end `infrakit init` smoke test |

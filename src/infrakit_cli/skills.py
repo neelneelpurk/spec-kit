@@ -117,9 +117,7 @@ def ensure_project_context_from_template(
             tracker.add("project_context", "Project Context setup")
             tracker.error("project_context", str(e))
         else:
-            console.print(
-                f"[yellow]Warning: Could not initialize project context: {e}[/yellow]"
-            )
+            console.print(f"[yellow]Warning: Could not initialize project context: {e}[/yellow]")
 
 
 def install_ai_skills(
@@ -214,7 +212,7 @@ def install_ai_skills(
             # strip the "infrakit:" prefix so skill names stay clean and
             # ``SKILL_DESCRIPTIONS`` lookups work.
             if command_name.startswith("infrakit:"):
-                command_name = command_name[len("infrakit:"):]
+                command_name = command_name[len("infrakit:") :]
             skill_name = f"infrakit-{command_name}"
 
             skill_dir = skills_dir / skill_name
@@ -231,7 +229,7 @@ def install_ai_skills(
             # newlines.
             source_name = command_file.name
             if source_name.startswith("infrakit:"):
-                source_name = source_name[len("infrakit:"):]
+                source_name = source_name[len("infrakit:") :]
 
             frontmatter_data = {
                 "name": skill_name,

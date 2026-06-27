@@ -55,9 +55,7 @@ class TestCheckCommand:
 
             output = result.output.lower()
             # Check for various possible summary indicators
-            assert any(
-                word in output for word in ["summary", "status", "ready", "check"]
-            )
+            assert any(word in output for word in ["summary", "status", "ready", "check"])
 
     @patch("infrakit_cli.cli.check_tool")
     @patch("infrakit_cli.cli.is_git_repo")

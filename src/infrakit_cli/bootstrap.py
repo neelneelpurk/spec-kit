@@ -79,9 +79,7 @@ def initialize_iac_config(
     }
     config_file = infrakit_dir / "config.yaml"
     if not config_file.exists():
-        config_file.write_text(
-            yaml.dump(config_data, sort_keys=False), encoding="utf-8"
-        )
+        config_file.write_text(yaml.dump(config_data, sort_keys=False), encoding="utf-8")
 
     # Copy assets (context.md, coding-style.md) from the IaC asset templates.
     assets_dir = iac_templates_dir / "assets"

@@ -35,9 +35,7 @@ class StepTracker:
 
     def add(self, key: str, label: str):
         if key not in [s["key"] for s in self.steps]:
-            self.steps.append(
-                {"key": key, "label": label, "status": "pending", "detail": ""}
-            )
+            self.steps.append({"key": key, "label": label, "status": "pending", "detail": ""})
             self._maybe_refresh()
 
     def start(self, key: str, detail: str = ""):
@@ -63,9 +61,7 @@ class StepTracker:
 
         # Key did not exist — append a new step so callers don't have to
         # ``add()`` before ``start()`` / ``complete()``.
-        self.steps.append(
-            {"key": key, "label": key, "status": status, "detail": detail}
-        )
+        self.steps.append({"key": key, "label": key, "status": status, "detail": detail})
         self._maybe_refresh()
 
     def _maybe_refresh(self):
@@ -99,9 +95,7 @@ class StepTracker:
             if status == "pending":
                 # Entire line light gray (pending)
                 if detail_text:
-                    line = (
-                        f"{symbol} [bright_black]{label} ({detail_text})[/bright_black]"
-                    )
+                    line = f"{symbol} [bright_black]{label} ({detail_text})[/bright_black]"
                 else:
                     line = f"{symbol} [bright_black]{label}[/bright_black]"
             else:

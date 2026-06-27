@@ -28,9 +28,11 @@ standard (no CLI behaviour change, so no release is cut by these).
   both degrade gracefully when tooling is absent.
 - **Developer-experience tooling.** `.editorconfig`; an explicit ruff config in
   `pyproject.toml` (`[tool.ruff]` — deterministic linting with import sorting and
-  pyupgrade, replacing CI's reliance on ruff defaults); a reusable
-  `setup-python-uv` composite GitHub Action; a `.devcontainer/README.md`; and
-  `make cov` / `make lint` / `make fix` targets.
+  pyupgrade, replacing CI's reliance on ruff defaults); **`ruff format` adopted
+  as the formatter** (the whole tree reformatted once), enforced by a
+  `ruff format --check` gate in CI and auto-applied by the pre-commit hook; a
+  reusable `setup-python-uv` composite GitHub Action; a `.devcontainer/README.md`;
+  and `make cov` / `make lint` / `make fix` / `make format` targets.
 
 ### Changed
 

@@ -45,32 +45,20 @@ class TestMcpConfig:
         """Stdio type recipes must have command and args fields."""
         for recipe_key, recipe in MCP_RECIPES.items():
             if recipe["type"] == "stdio":
-                assert "command" in recipe, (
-                    f"Stdio recipe '{recipe_key}' missing 'command' field"
-                )
-                assert "args" in recipe, (
-                    f"Stdio recipe '{recipe_key}' missing 'args' field"
-                )
+                assert "command" in recipe, f"Stdio recipe '{recipe_key}' missing 'command' field"
+                assert "args" in recipe, f"Stdio recipe '{recipe_key}' missing 'args' field"
 
                 # Command and args should be non-empty
-                assert len(recipe["command"]) > 0, (
-                    f"Recipe '{recipe_key}' has empty command"
-                )
-                assert isinstance(recipe["args"], list), (
-                    f"Recipe '{recipe_key}' args is not a list"
-                )
-                assert len(recipe["args"]) > 0, (
-                    f"Recipe '{recipe_key}' has empty args list"
-                )
+                assert len(recipe["command"]) > 0, f"Recipe '{recipe_key}' has empty command"
+                assert isinstance(recipe["args"], list), f"Recipe '{recipe_key}' args is not a list"
+                assert len(recipe["args"]) > 0, f"Recipe '{recipe_key}' has empty args list"
 
     def test_sse_recipe_fields(self):
         """SSE type recipes must have url field."""
         for recipe_key, recipe in MCP_RECIPES.items():
             if recipe["type"] == "sse":
                 assert "url" in recipe, f"SSE recipe '{recipe_key}' missing 'url' field"
-                assert recipe["url"].startswith("http"), (
-                    f"Recipe '{recipe_key}' has invalid URL"
-                )
+                assert recipe["url"].startswith("http"), f"Recipe '{recipe_key}' has invalid URL"
 
     def test_tools_field_validation(self):
         """Tools field must be a non-empty list of strings."""
@@ -80,9 +68,7 @@ class TestMcpConfig:
             assert len(tools) > 0, f"Recipe '{recipe_key}' has empty tools list"
 
             for tool in tools:
-                assert isinstance(tool, str), (
-                    f"Recipe '{recipe_key}' has non-string tool"
-                )
+                assert isinstance(tool, str), f"Recipe '{recipe_key}' has non-string tool"
                 assert len(tool) > 0, f"Recipe '{recipe_key}' has empty tool name"
 
     def test_context7_recipe(self):

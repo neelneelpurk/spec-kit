@@ -32,14 +32,10 @@ class TestAgentConfig:
 
         for agent_key, config in AGENT_CONFIG.items():
             for field in required_fields:
-                assert field in config, (
-                    f"Agent '{agent_key}' missing required field '{field}'"
-                )
+                assert field in config, f"Agent '{agent_key}' missing required field '{field}'"
                 # install_url and folder can be None for IDE-based/generic agents
                 if field not in ("install_url", "folder"):
-                    assert config[field] is not None, (
-                        f"Agent '{agent_key}' field '{field}' is None"
-                    )
+                    assert config[field] is not None, f"Agent '{agent_key}' field '{field}' is None"
 
     def test_agent_folder_format(self):
         """Agent folder should start with '.' and end with '/' (if not None)."""
@@ -76,9 +72,7 @@ class TestAgentConfig:
 
         for agent_key, config in AGENT_CONFIG.items():
             fmt = config["command_format"]
-            assert fmt in valid_formats, (
-                f"Agent '{agent_key}' has invalid command_format '{fmt}'"
-            )
+            assert fmt in valid_formats, f"Agent '{agent_key}' has invalid command_format '{fmt}'"
 
     def test_command_extension_matches_format(self):
         """Command extension should match the declared format."""
@@ -87,13 +81,9 @@ class TestAgentConfig:
             ext = config["command_extension"]
 
             if fmt == "markdown":
-                assert ext == ".md", (
-                    f"Agent '{agent_key}' is markdown but has extension '{ext}'"
-                )
+                assert ext == ".md", f"Agent '{agent_key}' is markdown but has extension '{ext}'"
             elif fmt == "toml":
-                assert ext == ".toml", (
-                    f"Agent '{agent_key}' is toml but has extension '{ext}'"
-                )
+                assert ext == ".toml", f"Agent '{agent_key}' is toml but has extension '{ext}'"
             elif fmt == "agent.md":
                 assert ext == ".agent.md", (
                     f"Agent '{agent_key}' is agent.md but has extension '{ext}'"
@@ -110,9 +100,7 @@ class TestAgentConfig:
                     f"Agent '{agent_key}' (markdown) has wrong args placeholder"
                 )
             elif fmt == "toml":
-                assert args == "{{args}}", (
-                    f"Agent '{agent_key}' (toml) has wrong args placeholder"
-                )
+                assert args == "{{args}}", f"Agent '{agent_key}' (toml) has wrong args placeholder"
 
     def test_requires_cli_boolean(self):
         """requires_cli must be a boolean."""
@@ -153,9 +141,7 @@ class TestAgentConfig:
                 f"Supported agent '{agent_key}' missing from AGENT_CONFIG"
             )
             config = AGENT_CONFIG[agent_key]
-            assert config["folder"] == expected_folder, (
-                f"Agent '{agent_key}' folder mismatch"
-            )
+            assert config["folder"] == expected_folder, f"Agent '{agent_key}' folder mismatch"
             assert config["commands_subdir"] == expected_subdir, (
                 f"Agent '{agent_key}' commands_subdir mismatch"
             )
@@ -175,9 +161,7 @@ class TestAgentConfig:
         folders = []
         for agent_key, config in AGENT_CONFIG.items():
             folder = config["folder"]
-            assert folder not in folders, (
-                f"Duplicate folder '{folder}' used by multiple agents"
-            )
+            assert folder not in folders, f"Duplicate folder '{folder}' used by multiple agents"
             folders.append(folder)
 
     def test_generic_agent_config(self):
@@ -212,9 +196,5 @@ class TestAgentConfig:
         cli_agents = ["claude", "codex", "gemini"]
         for tool in cli_agents:
             cfg = AGENT_CONFIG[tool]
-            assert cfg["requires_cli"] is True, (
-                f"Agent '{tool}' should have requires_cli=True"
-            )
-            assert cfg["install_url"], (
-                f"Agent '{tool}' should declare an install_url"
-            )
+            assert cfg["requires_cli"] is True, f"Agent '{tool}' should have requires_cli=True"
+            assert cfg["install_url"], f"Agent '{tool}' should declare an install_url"

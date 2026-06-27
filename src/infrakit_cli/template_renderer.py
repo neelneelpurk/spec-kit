@@ -132,13 +132,7 @@ def write_command(
 
     if command_format == "toml":
         escaped = rendered_body.replace("\\", "\\\\")
-        body = (
-            f'description = "{description}"\n'
-            "\n"
-            'prompt = """\n'
-            f"{escaped}\n"
-            '"""\n'
-        )
+        body = f'description = "{description}"\n\nprompt = """\n{escaped}\n"""\n'
         dest.write_text(body, encoding="utf-8")
     else:
         dest.write_text(rendered_body, encoding="utf-8")
@@ -370,9 +364,7 @@ def materialize_project(
     #         custom subagents) -------------------------------------------
 
     if "copilot_prompts" in extras and folder:
-        counts["prompt_files"] = _emit_copilot_prompts(
-            cmds_dest, project_path / folder / "prompts"
-        )
+        counts["prompt_files"] = _emit_copilot_prompts(cmds_dest, project_path / folder / "prompts")
 
     if "vscode_settings" in extras:
         _copy_vscode_settings(project_path)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# InfraKit pre-commit hook: fast gates only (lint). The heavier pytest suite
-# runs in .githooks/pre-push. Enable with `make hooks`.
+# InfraKit pre-commit hook: fast gates only (format + lint). The heavier pytest
+# suite runs in .githooks/pre-push. Enable with `make hooks`.
 set -euo pipefail
 
 staged_py=$(git diff --cached --name-only --diff-filter=ACM -- '*.py' || true)
@@ -10,15 +10,24 @@ if [ -z "$staged_py" ] && [ -z "$staged_md" ]; then
   exit 0
 fi
 
-# Ruff over staged Python. Skipped (with a warning) if ruff isn't available so
-# contributors without the tool aren't blocked; CI still enforces it.
+# Ruff over staged Python: format, then lint with autofix, then re-stage the
+# results so commits are always clean and match the CI format gate. Skipped
+# (with a warning) if ruff isn't available so contributors without the tool
+# aren't blocked; CI still enforces it.
 if [ -n "$staged_py" ]; then
   if command -v uvx >/dev/null 2>&1; then
-    echo "$staged_py" | xargs uvx ruff check
+    RUFF="uvx ruff"
   elif command -v ruff >/dev/null 2>&1; then
-    echo "$staged_py" | xargs ruff check
+    RUFF="ruff"
   else
-    echo "warning: ruff/uvx not on PATH — skipped Python lint. CI will enforce it." >&2
+    RUFF=""
+  fi
+  if [ -n "$RUFF" ]; then
+    echo "$staged_py" | xargs $RUFF format
+    echo "$staged_py" | xargs $RUFF check --fix
+    echo "$staged_py" | xargs git add
+  else
+    echo "warning: ruff/uvx not on PATH — skipped Python format/lint. CI will enforce it." >&2
   fi
 fi
 

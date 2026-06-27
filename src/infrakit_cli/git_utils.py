@@ -34,9 +34,7 @@ def is_git_repo(path: Path = None) -> bool:
         return False
 
 
-def init_git_repo(
-    project_path: Path, quiet: bool = False
-) -> tuple[bool, str | None]:
+def init_git_repo(project_path: Path, quiet: bool = False) -> tuple[bool, str | None]:
     """Initialise a git repository at ``project_path`` and create an initial commit.
 
     Args:
