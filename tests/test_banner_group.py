@@ -1,10 +1,8 @@
 """Tests for BannerGroup class."""
 
-
 from typer.testing import CliRunner
 
-from infrakit_cli import app, BannerGroup
-
+from infrakit_cli import BannerGroup, app
 
 runner = CliRunner()
 

@@ -8,6 +8,7 @@ Tests cover:
 """
 
 import pytest
+
 from infrakit_cli.iac_config import IAC_CONFIG, get_iac_choices, get_iac_commands
 
 
@@ -29,9 +30,7 @@ class TestIacConfig:
 
         for tool_key, config in IAC_CONFIG.items():
             for field in required_fields:
-                assert field in config, (
-                    f"IaC tool '{tool_key}' missing required field '{field}'"
-                )
+                assert field in config, f"IaC tool '{tool_key}' missing required field '{field}'"
 
     def test_crossplane_configuration(self):
         """Crossplane configuration should be complete and correct."""
@@ -104,9 +103,7 @@ class TestIacConfig:
             assert len(generic) == len(set(generic)), (
                 f"Duplicate commands in {tool_key} generic_commands"
             )
-            assert len(iac) == len(set(iac)), (
-                f"Duplicate commands in {tool_key} iac_commands"
-            )
+            assert len(iac) == len(set(iac)), f"Duplicate commands in {tool_key} iac_commands"
 
             # No overlap between generic and iac commands
             overlap = set(generic) & set(iac)
@@ -118,9 +115,7 @@ class TestIacConfig:
 
         for tool_key, config in IAC_CONFIG.items():
             fmt = config["output_format"]
-            assert fmt in valid_formats, (
-                f"IaC tool '{tool_key}' has invalid output_format '{fmt}'"
-            )
+            assert fmt in valid_formats, f"IaC tool '{tool_key}' has invalid output_format '{fmt}'"
 
     def test_tool_lists_are_lists(self):
         """requires_tools and optional_tools must be lists."""

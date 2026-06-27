@@ -5,7 +5,6 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 from .console import console
 from .tracker import StepTracker
@@ -24,7 +23,7 @@ def run_command(
     check_return: bool = True,
     capture: bool = False,
     shell: bool = False,
-) -> Optional[str]:
+) -> str | None:
     """Run a shell command and optionally return its stdout."""
     try:
         if capture:
@@ -67,7 +66,7 @@ def check_tool(tool: str, tracker: StepTracker = None) -> bool:
     return found
 
 
-def find_project_root(start: Path = None) -> Optional[Path]:
+def find_project_root(start: Path = None) -> Path | None:
     """Walk up from ``start`` (default: cwd) until a directory contains
     ``.infrakit/config.yaml``. Returns ``None`` if no such ancestor exists.
     """

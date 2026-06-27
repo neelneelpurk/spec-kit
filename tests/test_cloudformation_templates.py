@@ -14,7 +14,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).parent.parent
 CFN_TEMPLATES_DIR = REPO_ROOT / "templates" / "iac" / "cloudformation"
 

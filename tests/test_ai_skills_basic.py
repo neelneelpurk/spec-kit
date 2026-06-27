@@ -3,8 +3,7 @@
 from pathlib import Path
 from unittest.mock import patch
 
-
-from infrakit_cli import install_ai_skills, _get_skills_dir
+from infrakit_cli import _get_skills_dir, install_ai_skills
 
 
 class TestGetSkillsDir:
@@ -41,7 +40,7 @@ class TestInstallAiSkills:
         with patch.object(Path, "exists", return_value=False):
             with patch.object(Path, "mkdir"):
                 with patch("infrakit_cli.skills.Path.glob", return_value=[]):
-                    result = install_ai_skills(tmp_path, "claude")
+                    install_ai_skills(tmp_path, "claude")
 
     def test_install_skills_returns_bool(self, tmp_path):
         """Test that install_ai_skills returns a boolean."""

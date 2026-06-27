@@ -15,7 +15,6 @@ from infrakit_cli.template_renderer import (
     write_command,
 )
 
-
 # ---------------------------------------------------------------------------
 # Unit tests for the pure functions.
 # ---------------------------------------------------------------------------
@@ -48,9 +47,7 @@ class TestRenderCommand:
         assert out == "Hi from claude."
 
     def test_rewrites_repo_root_paths(self):
-        body = (
-            "Run scripts/foo.sh and look at memory/notes.md and templates/x.md."
-        )
+        body = "Run scripts/foo.sh and look at memory/notes.md and templates/x.md."
         out = render_command(body, args_token="$ARGUMENTS", agent="claude")
         assert ".infrakit/scripts/foo.sh" in out
         assert ".infrakit/memory/notes.md" in out
@@ -157,9 +154,7 @@ def test_materialize_project_layouts(
     expected_extension: str,
 ):
     project = tmp_path / "proj"
-    counts = materialize_project(
-        project, ai_assistant=agent, iac_tool=iac, script_variant="sh"
-    )
+    counts = materialize_project(project, ai_assistant=agent, iac_tool=iac, script_variant="sh")
 
     cmds_dir = project / expected_commands_dir
     assert cmds_dir.is_dir(), f"missing commands dir: {cmds_dir}"
@@ -212,9 +207,7 @@ def test_materialize_claude_registers_custom_subagents(tmp_path: Path):
 
 def test_materialize_claude_crossplane_registers_crossplane_engineer(tmp_path: Path):
     project = tmp_path / "proj"
-    materialize_project(
-        project, ai_assistant="claude", iac_tool="crossplane", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="claude", iac_tool="crossplane", script_variant="sh")
     agents_dir = project / ".claude" / "agents"
     assert (agents_dir / "crossplane-engineer.md").is_file()
     assert not (agents_dir / "terraform-engineer.md").exists(), (
@@ -226,9 +219,7 @@ def test_materialize_non_claude_agents_do_not_register_subagents(tmp_path: Path)
     """Codex/Gemini/Copilot/generic must NOT get a .claude/agents/ tree."""
     for agent in ["codex", "gemini", "copilot", "generic"]:
         project = tmp_path / f"proj-{agent}"
-        materialize_project(
-            project, ai_assistant=agent, iac_tool="terraform", script_variant="sh"
-        )
+        materialize_project(project, ai_assistant=agent, iac_tool="terraform", script_variant="sh")
         assert not (project / ".claude" / "agents").exists(), (
             f"agent {agent} should not produce a .claude/agents/ tree"
         )
@@ -245,25 +236,25 @@ def test_materialize_copilot_emits_prompt_pairs(tmp_path: Path):
     assert agents_dir.is_dir()
     assert prompts_dir.is_dir()
 
-    agent_files = sorted(p.stem.removesuffix(".agent") for p in agents_dir.glob("infrakit:*.agent.md"))
-    prompt_files = sorted(p.stem.removesuffix(".prompt") for p in prompts_dir.glob("infrakit:*.prompt.md"))
+    agent_files = sorted(
+        p.stem.removesuffix(".agent") for p in agents_dir.glob("infrakit:*.agent.md")
+    )
+    prompt_files = sorted(
+        p.stem.removesuffix(".prompt") for p in prompts_dir.glob("infrakit:*.prompt.md")
+    )
     assert agent_files == prompt_files
     assert counts["prompt_files"] == len(agent_files) > 0
 
 
 def test_materialize_copilot_copies_vscode_settings(tmp_path: Path):
     project = tmp_path / "proj"
-    materialize_project(
-        project, ai_assistant="copilot", iac_tool="terraform", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="copilot", iac_tool="terraform", script_variant="sh")
     assert (project / ".vscode" / "settings.json").is_file()
 
 
 def test_materialize_gemini_wraps_commands_as_toml(tmp_path: Path):
     project = tmp_path / "proj"
-    materialize_project(
-        project, ai_assistant="gemini", iac_tool="crossplane", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="gemini", iac_tool="crossplane", script_variant="sh")
     setup = project / ".gemini" / "commands" / "infrakit:setup.toml"
     assert setup.is_file()
     content = setup.read_text(encoding="utf-8")
@@ -276,9 +267,7 @@ def test_materialize_gemini_wraps_commands_as_toml(tmp_path: Path):
 
 def test_materialize_terraform_uses_terraform_commands(tmp_path: Path):
     project = tmp_path / "proj"
-    materialize_project(
-        project, ai_assistant="claude", iac_tool="terraform", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="claude", iac_tool="terraform", script_variant="sh")
     cmds = sorted(p.name for p in (project / ".claude" / "commands").iterdir())
     # Terraform IaC commands present, Crossplane ones absent.
     assert "infrakit:create_terraform_code.md" in cmds
@@ -287,9 +276,7 @@ def test_materialize_terraform_uses_terraform_commands(tmp_path: Path):
 
 def test_materialize_crossplane_uses_crossplane_commands(tmp_path: Path):
     project = tmp_path / "proj"
-    materialize_project(
-        project, ai_assistant="claude", iac_tool="crossplane", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="claude", iac_tool="crossplane", script_variant="sh")
     cmds = sorted(p.name for p in (project / ".claude" / "commands").iterdir())
     assert "infrakit:new_composition.md" in cmds
     assert "infrakit:create_terraform_code.md" not in cmds
@@ -324,47 +311,34 @@ def test_materialize_claude_cloudformation_registers_cloudformation_engineer(tmp
 def test_materialize_renders_quick_fix_for_all_tools(tmp_path: Path, iac: str):
     """The quick_fix fast-path command must render for every IaC tool."""
     project = tmp_path / f"proj-{iac}"
-    materialize_project(
-        project, ai_assistant="claude", iac_tool=iac, script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="claude", iac_tool=iac, script_variant="sh")
     cmds = sorted(p.name for p in (project / ".claude" / "commands").iterdir())
     assert "infrakit:quick_fix.md" in cmds
 
 
 def test_unknown_agent_raises(tmp_path: Path):
     with pytest.raises(ValueError, match="unknown AI assistant"):
-        materialize_project(
-            tmp_path / "x", ai_assistant="nope", iac_tool="terraform"
-        )
+        materialize_project(tmp_path / "x", ai_assistant="nope", iac_tool="terraform")
 
 
 def test_unknown_iac_raises(tmp_path: Path):
     with pytest.raises(ValueError, match="unknown IaC tool"):
-        materialize_project(
-            tmp_path / "x", ai_assistant="claude", iac_tool="nope"
-        )
+        materialize_project(tmp_path / "x", ai_assistant="claude", iac_tool="nope")
 
 
 def test_overwrite_is_idempotent_when_false(tmp_path: Path):
     project = tmp_path / "proj"
-    materialize_project(
-        project, ai_assistant="claude", iac_tool="terraform", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="claude", iac_tool="terraform", script_variant="sh")
     setup_path = project / ".claude" / "commands" / "infrakit:setup.md"
-    first_mtime = setup_path.stat().st_mtime
     # Tamper with the file, then re-materialise without overwrite.
     setup_path.write_text("TAMPERED", encoding="utf-8")
-    materialize_project(
-        project, ai_assistant="claude", iac_tool="terraform", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="claude", iac_tool="terraform", script_variant="sh")
     assert setup_path.read_text(encoding="utf-8") == "TAMPERED"
 
 
 def test_overwrite_true_replaces_existing(tmp_path: Path):
     project = tmp_path / "proj"
-    materialize_project(
-        project, ai_assistant="claude", iac_tool="terraform", script_variant="sh"
-    )
+    materialize_project(project, ai_assistant="claude", iac_tool="terraform", script_variant="sh")
     setup_path = project / ".claude" / "commands" / "infrakit:setup.md"
     setup_path.write_text("TAMPERED", encoding="utf-8")
     materialize_project(

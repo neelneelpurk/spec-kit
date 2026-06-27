@@ -54,15 +54,9 @@ def callback(ctx: typer.Context):
     """Show the banner when no subcommand is provided."""
     from rich.align import Align
 
-    if (
-        ctx.invoked_subcommand is None
-        and "--help" not in sys.argv
-        and "-h" not in sys.argv
-    ):
+    if ctx.invoked_subcommand is None and "--help" not in sys.argv and "-h" not in sys.argv:
         show_banner()
-        console.print(
-            Align.center("[dim]Run 'infrakit --help' for usage information[/dim]")
-        )
+        console.print(Align.center("[dim]Run 'infrakit --help' for usage information[/dim]"))
         console.print()
 
 
@@ -82,20 +76,14 @@ def init(
         "--ai-commands-dir",
         help="Directory for agent command files (required with --ai generic, e.g. .myagent/commands/)",
     ),
-    iac_tool: str = typer.Option(
-        None, "--iac", help=f"IaC tool to use: {', '.join(IAC_CONFIG)}"
-    ),
-    script_type: str = typer.Option(
-        None, "--script", help="Script type to use: sh or ps"
-    ),
+    iac_tool: str = typer.Option(None, "--iac", help=f"IaC tool to use: {', '.join(IAC_CONFIG)}"),
+    script_type: str = typer.Option(None, "--script", help="Script type to use: sh or ps"),
     ignore_agent_tools: bool = typer.Option(
         False,
         "--ignore-agent-tools",
         help="Skip checks for AI agent tools like Claude Code",
     ),
-    no_git: bool = typer.Option(
-        False, "--no-git", help="Skip git repository initialization"
-    ),
+    no_git: bool = typer.Option(False, "--no-git", help="Skip git repository initialization"),
     here: bool = typer.Option(
         False,
         "--here",
@@ -147,19 +135,13 @@ def init(
     # consumed as the previous flag's value.
     if ai_assistant and ai_assistant.startswith("--"):
         console.print(f"[red]Error:[/red] Invalid value for --ai: '{ai_assistant}'")
-        console.print(
-            "[yellow]Hint:[/yellow] Did you forget to provide a value for --ai?"
-        )
+        console.print("[yellow]Hint:[/yellow] Did you forget to provide a value for --ai?")
         console.print("[yellow]Example:[/yellow] infrakit init --ai claude --here")
-        console.print(
-            f"[yellow]Available agents:[/yellow] {', '.join(AGENT_CONFIG.keys())}"
-        )
+        console.print(f"[yellow]Available agents:[/yellow] {', '.join(AGENT_CONFIG.keys())}")
         raise typer.Exit(1)
 
     if ai_commands_dir and ai_commands_dir.startswith("--"):
-        console.print(
-            f"[red]Error:[/red] Invalid value for --ai-commands-dir: '{ai_commands_dir}'"
-        )
+        console.print(f"[red]Error:[/red] Invalid value for --ai-commands-dir: '{ai_commands_dir}'")
         console.print(
             "[yellow]Hint:[/yellow] Did you forget to provide a value for --ai-commands-dir?"
         )
@@ -173,9 +155,7 @@ def init(
         project_name = None  # Clear so existing --here validation logic applies
 
     if here and project_name:
-        console.print(
-            "[red]Error:[/red] Cannot specify both project name and --here flag"
-        )
+        console.print("[red]Error:[/red] Cannot specify both project name and --here flag")
         raise typer.Exit(1)
 
     if not here and not project_name:
@@ -186,9 +166,7 @@ def init(
 
     if ai_skills and not ai_assistant:
         console.print("[red]Error:[/red] --ai-skills requires --ai to be specified")
-        console.print(
-            "[yellow]Usage:[/yellow] infrakit init <project> --ai <agent> --ai-skills"
-        )
+        console.print("[yellow]Usage:[/yellow] infrakit init <project> --ai <agent> --ai-skills")
         raise typer.Exit(1)
 
     if here:
@@ -244,9 +222,7 @@ def init(
     if not no_git:
         should_init_git = check_tool("git")
         if not should_init_git:
-            console.print(
-                "[yellow]Git not found - will skip repository initialization[/yellow]"
-            )
+            console.print("[yellow]Git not found - will skip repository initialization[/yellow]")
 
     if ai_assistant:
         if ai_assistant not in AGENT_CONFIG:
@@ -257,16 +233,12 @@ def init(
         selected_ai = ai_assistant
     else:
         ai_choices = {key: config["name"] for key, config in AGENT_CONFIG.items()}
-        selected_ai = select_with_arrows(
-            ai_choices, "Choose your AI assistant:", "copilot"
-        )
+        selected_ai = select_with_arrows(ai_choices, "Choose your AI assistant:", "copilot")
 
     # Validate --ai-commands-dir usage.
     if selected_ai == "generic":
         if not ai_commands_dir:
-            console.print(
-                "[red]Error:[/red] --ai-commands-dir is required when using --ai generic"
-            )
+            console.print("[red]Error:[/red] --ai-commands-dir is required when using --ai generic")
             console.print(
                 "[dim]Example: infrakit init my-project --ai generic --ai-commands-dir .myagent/commands/[/dim]"
             )
@@ -324,9 +296,7 @@ def init(
     else:
         iac_choices = get_iac_choices()
         if sys.stdin.isatty():
-            selected_iac = select_with_arrows(
-                iac_choices, "Choose your IaC tool:", "crossplane"
-            )
+            selected_iac = select_with_arrows(iac_choices, "Choose your IaC tool:", "crossplane")
         else:
             selected_iac = "crossplane"
 
@@ -363,9 +333,7 @@ def init(
     # Track git error message outside Live context so it survives the redraw.
     git_error_message = None
 
-    with Live(
-        tracker.render(), console=console, refresh_per_second=8, transient=True
-    ) as live:
+    with Live(tracker.render(), console=console, refresh_per_second=8, transient=True) as live:
         tracker.attach_refresh(lambda: live.update(tracker.render()))
         try:
             # Templates ship inside the package; no network calls.
@@ -375,9 +343,7 @@ def init(
             ensure_project_context_from_template(project_path, tracker=tracker)
 
             # Materialise .infrakit/, .infrakit_tracks/, commands, personas.
-            initialize_iac_config(
-                project_path, selected_iac, selected_ai, tracker=tracker
-            )
+            initialize_iac_config(project_path, selected_iac, selected_ai, tracker=tracker)
 
             # For the generic agent, rename the rendered .infrakit/commands/
             # to the user-specified path so they can place commands wherever
@@ -390,9 +356,7 @@ def init(
                     shutil.move(str(placeholder_dir), str(target_dir))
 
             if ai_skills:
-                skills_ok = install_ai_skills(
-                    project_path, selected_ai, tracker=tracker
-                )
+                skills_ok = install_ai_skills(project_path, selected_ai, tracker=tracker)
 
                 # When --ai-skills is used on a NEW project and skills were
                 # successfully installed, remove the command files that the
@@ -435,11 +399,7 @@ def init(
             tracker.complete("final", "project ready")
         except Exception as e:
             tracker.error("final", str(e))
-            console.print(
-                Panel(
-                    f"Initialization failed: {e}", title="Failure", border_style="red"
-                )
-            )
+            console.print(Panel(f"Initialization failed: {e}", title="Failure", border_style="red"))
             if debug:
                 _env_pairs = [
                     ("Python", sys.version.split()[0]),
@@ -486,9 +446,7 @@ def init(
     # Agent folder security notice.
     agent_config = AGENT_CONFIG.get(selected_ai)
     if agent_config:
-        agent_folder = (
-            ai_commands_dir if selected_ai == "generic" else agent_config["folder"]
-        )
+        agent_folder = ai_commands_dir if selected_ai == "generic" else agent_config["folder"]
         if agent_folder:
             security_notice = Panel(
                 f"Some agents may store credentials, auth tokens, or other identifying and private artifacts in the agent folder within your project.\n"
@@ -507,17 +465,13 @@ def init(
     iac_cfg = IAC_CONFIG.get(selected_iac, {})
     resource_term = iac_cfg.get("resource_term", "resource")
     iac_cmds = iac_cfg.get("iac_commands", [])
-    create_cmd = next(
-        (c for c in iac_cmds if c.startswith(("new_", "create_"))), None
-    )
+    create_cmd = next((c for c in iac_cmds if c.startswith(("new_", "create_"))), None)
     update_cmd = next((c for c in iac_cmds if c.startswith("update_")), None)
 
     steps_lines = []
     n = 1
     if not here:
-        steps_lines.append(
-            f"{n}. Go to the project folder: [cyan]cd {project_name}[/cyan]"
-        )
+        steps_lines.append(f"{n}. Go to the project folder: [cyan]cd {project_name}[/cyan]")
     else:
         steps_lines.append(f"{n}. You're already in the project directory!")
     n += 1
@@ -540,14 +494,10 @@ def init(
     steps_lines.append(
         "   • [cyan]/infrakit:setup[/] - Capture project context & tagging standards"
     )
-    steps_lines.append(
-        "   • [cyan]/infrakit:setup-coding-style[/] - Define IaC coding standards"
-    )
+    steps_lines.append("   • [cyan]/infrakit:setup-coding-style[/] - Define IaC coding standards")
     n += 1
 
-    steps_lines.append(
-        f"{n}. Build a {resource_term} (full spec-driven pipeline):"
-    )
+    steps_lines.append(f"{n}. Build a {resource_term} (full spec-driven pipeline):")
     if create_cmd:
         steps_lines.append(
             f"   • [cyan]/infrakit:{create_cmd}[/] - Spec → architect → security review"
@@ -556,13 +506,9 @@ def init(
         steps_lines.append(
             f"   • [cyan]/infrakit:{update_cmd}[/] - Update an existing {resource_term}"
         )
-    steps_lines.append(
-        "   • [cyan]/infrakit:plan[/] - Plan + auto-generate tasks.md"
-    )
+    steps_lines.append("   • [cyan]/infrakit:plan[/] - Plan + auto-generate tasks.md")
     steps_lines.append("   • [cyan]/infrakit:implement[/] - Execute the task list")
-    steps_lines.append(
-        "   • [cyan]/infrakit:review[/] - Review generated code against standards"
-    )
+    steps_lines.append("   • [cyan]/infrakit:review[/] - Review generated code against standards")
     n += 1
 
     steps_lines.append(f"{n}. …or take the lighter path:")
@@ -571,9 +517,7 @@ def init(
     )
     n += 1
 
-    steps_lines.append(
-        f"{n}. Track all work anytime with [cyan]/infrakit:status[/]"
-    )
+    steps_lines.append(f"{n}. Track all work anytime with [cyan]/infrakit:status[/]")
 
     steps_panel = Panel(
         "\n".join(steps_lines), title="Next Steps", border_style="cyan", padding=(1, 2)
@@ -698,9 +642,7 @@ def mcp():
 
     ai_assistant = project_config.get("ai_assistant")
     if not ai_assistant:
-        console.print(
-            "[red]Error:[/red] 'ai_assistant' not found in .infrakit/config.yaml"
-        )
+        console.print("[red]Error:[/red] 'ai_assistant' not found in .infrakit/config.yaml")
         raise typer.Exit(1)
 
     agent_cfg = AGENT_CONFIG.get(ai_assistant, {})
@@ -710,9 +652,7 @@ def mcp():
     console.print(f"[cyan]Project:[/cyan] [dim]{project_root}[/dim]\n")
 
     recipe_choices = {k: v["display_name"] for k, v in MCP_RECIPES.items()}
-    selected_key = select_with_arrows(
-        recipe_choices, "Choose an MCP recipe to install:"
-    )
+    selected_key = select_with_arrows(recipe_choices, "Choose an MCP recipe to install:")
 
     mcp_install_path = agent_cfg.get("mcp_install_path")
 
@@ -724,9 +664,7 @@ def mcp():
 
     newly_installed = False
 
-    with Live(
-        tracker.render(), console=console, refresh_per_second=8, transient=True
-    ) as live:
+    with Live(tracker.render(), console=console, refresh_per_second=8, transient=True) as live:
         tracker.attach_refresh(lambda: live.update(tracker.render()))
 
         if mcp_install_path:
@@ -741,9 +679,7 @@ def mcp():
                 tracker.skip("write", "no changes needed")
                 tracker.skip("index", "no changes needed")
             else:
-                existing["mcpServers"][selected_key] = _build_mcp_server_entry(
-                    selected_key
-                )
+                existing["mcpServers"][selected_key] = _build_mcp_server_entry(selected_key)
                 tracker.complete("merge", f"added {selected_key}")
 
                 tracker.start("write")
@@ -752,9 +688,7 @@ def mcp():
                     with open(mcp_json_path, "w", encoding="utf-8") as f:
                         json.dump(existing, f, indent=2)
                         f.write("\n")
-                    tracker.complete(
-                        "write", str(mcp_json_path.relative_to(project_root))
-                    )
+                    tracker.complete("write", str(mcp_json_path.relative_to(project_root)))
                     newly_installed = True
                 except OSError as e:
                     tracker.error("write", str(e))
@@ -766,9 +700,7 @@ def mcp():
             tracker.complete("resolve", str(md_path.relative_to(project_root)))
 
             tracker.start("merge")
-            existing_content = (
-                md_path.read_text(encoding="utf-8") if md_path.exists() else ""
-            )
+            existing_content = md_path.read_text(encoding="utf-8") if md_path.exists() else ""
             if selected_key in existing_content:
                 tracker.skip("merge", f"{selected_key} already documented")
                 tracker.skip("write", "no changes needed")
@@ -807,13 +739,9 @@ def mcp():
     console.print(tracker.render())
 
     if newly_installed:
-        console.print(
-            f"\n[bold green]MCP recipe installed:[/bold green] {selected_key}"
-        )
+        console.print(f"\n[bold green]MCP recipe installed:[/bold green] {selected_key}")
     else:
-        console.print(
-            f"\n[dim]{selected_key} was already configured — nothing changed.[/dim]"
-        )
+        console.print(f"\n[dim]{selected_key} was already configured — nothing changed.[/dim]")
 
 
 @app.command()

@@ -1,6 +1,5 @@
 """Tests for StepTracker class."""
 
-
 from infrakit_cli import StepTracker
 
 
@@ -162,7 +161,9 @@ class TestStepTracker:
     def test_step_tracker_attach_refresh(self):
         """Test attaching refresh callback."""
         tracker = StepTracker("Test")
-        callback = lambda: None
+
+        def callback():
+            return None
 
         tracker.attach_refresh(callback)
         assert tracker._refresh_cb == callback

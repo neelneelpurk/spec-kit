@@ -93,6 +93,17 @@ echo -e "\n📚 Installing DocFx..."
 run_command "dotnet tool update -g docfx"
 echo "✅ Done"
 
+# Install InfraKit's Python dependencies and enable the repo git hooks so the
+# environment is ready to hack on immediately. Kept non-fatal: a missing tool
+# should warn, not abort the whole container build.
+echo -e "\n📦 Setting up InfraKit (dependencies + git hooks)..."
+if command -v uv >/dev/null 2>&1; then
+    uv sync --extra test && echo "✅ Dependencies installed" || echo "⚠️  'uv sync' failed — run it manually after start" >&2
+else
+    echo "⚠️  uv not on PATH yet — run 'uv sync --extra test' after the container starts" >&2
+fi
+git config core.hooksPath .githooks && echo "✅ git hooks enabled" || true
+
 echo -e "\n🧹 Cleaning cache..."
 run_command "sudo apt-get autoclean"
 run_command "sudo apt-get clean"

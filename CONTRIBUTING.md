@@ -53,6 +53,29 @@ Here are a few things you can do that will increase the likelihood of your pull 
 - Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 - Test your changes against the spec → plan → implement → review pipeline to ensure compatibility with all supported IaC tools (Crossplane, Terraform, and CloudFormation).
 
+## Useful commands
+
+A [`Makefile`](./Makefile) wraps the common tasks (run `make` to list them):
+
+| Command | What it does |
+|---------|--------------|
+| `make setup` | Install dependencies into a local venv (`uv sync`) |
+| `make hooks` | Enable the repo git hooks (lint on commit, tests on push) |
+| `make test` | Run the full pytest suite (offline) |
+| `make cov` | Run the suite with a coverage report |
+| `make lint` / `make fix` | Lint + format-check with ruff (`fix` auto-applies fixes and formats) |
+| `make format` | Format the code with `ruff format` |
+| `make check` | Everything CI runs: `ruff` + `markdownlint` + `pytest` |
+| `make build` | Build the wheel and sdist |
+| `make e2e` | Offline end-to-end `infrakit init` smoke test |
+
+Lint rules are pinned in `pyproject.toml` (`[tool.ruff]`) and editor settings in
+`.editorconfig`, so your editor, the git hooks, and CI all agree. The quickest
+way to get a ready-to-hack environment is the [dev container](./.devcontainer/) —
+it installs the agent CLIs, syncs dependencies, and enables the hooks for you.
+
+See [TESTING.md](./TESTING.md) for the full testing guide.
+
 ## Development workflow
 
 When working on infrakit:

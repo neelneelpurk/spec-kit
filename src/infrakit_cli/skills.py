@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -85,7 +84,7 @@ def _get_skills_dir(project_path: Path, selected_ai: str) -> Path:
 
 
 def ensure_project_context_from_template(
-    project_path: Path, tracker: Optional[StepTracker] = None
+    project_path: Path, tracker: StepTracker | None = None
 ) -> None:
     """Seed ``.infrakit/memory/project-context.md`` from the bundled template
     if it doesn't exist yet. Existing user content is always preserved.
@@ -118,15 +117,13 @@ def ensure_project_context_from_template(
             tracker.add("project_context", "Project Context setup")
             tracker.error("project_context", str(e))
         else:
-            console.print(
-                f"[yellow]Warning: Could not initialize project context: {e}[/yellow]"
-            )
+            console.print(f"[yellow]Warning: Could not initialize project context: {e}[/yellow]")
 
 
 def install_ai_skills(
     project_path: Path,
     selected_ai: str,
-    tracker: Optional[StepTracker] = None,
+    tracker: StepTracker | None = None,
 ) -> bool:
     """Install prompt-template files from ``templates/commands/`` as agent skills.
 
@@ -215,7 +212,7 @@ def install_ai_skills(
             # strip the "infrakit:" prefix so skill names stay clean and
             # ``SKILL_DESCRIPTIONS`` lookups work.
             if command_name.startswith("infrakit:"):
-                command_name = command_name[len("infrakit:"):]
+                command_name = command_name[len("infrakit:") :]
             skill_name = f"infrakit-{command_name}"
 
             skill_dir = skills_dir / skill_name
@@ -232,7 +229,7 @@ def install_ai_skills(
             # newlines.
             source_name = command_file.name
             if source_name.startswith("infrakit:"):
-                source_name = source_name[len("infrakit:"):]
+                source_name = source_name[len("infrakit:") :]
 
             frontmatter_data = {
                 "name": skill_name,

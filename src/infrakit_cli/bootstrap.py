@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -34,7 +33,7 @@ def initialize_iac_config(
     iac_tool: str,
     ai_assistant: str,
     *,
-    tracker: Optional[StepTracker] = None,
+    tracker: StepTracker | None = None,
 ) -> None:
     """Set up IaC-specific configuration, commands, agents, and documentation.
 
@@ -80,9 +79,7 @@ def initialize_iac_config(
     }
     config_file = infrakit_dir / "config.yaml"
     if not config_file.exists():
-        config_file.write_text(
-            yaml.dump(config_data, sort_keys=False), encoding="utf-8"
-        )
+        config_file.write_text(yaml.dump(config_data, sort_keys=False), encoding="utf-8")
 
     # Copy assets (context.md, coding-style.md) from the IaC asset templates.
     assets_dir = iac_templates_dir / "assets"

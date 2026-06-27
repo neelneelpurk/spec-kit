@@ -63,7 +63,7 @@ def test_negative_fixture_catches_hardcoded_secret():
 def test_hardcoded_secret_heuristic_does_not_false_positive():
     """Reference-based / generated credentials must NOT be flagged as hardcoded."""
     safe = [
-        'password = var.db_password',
+        "password = var.db_password",
         "MasterUserPassword: !Ref DBPassword",
         "MasterUserPassword: '{{resolve:secretsmanager:prod/db:SecretString:password}}'",
         "autoGeneratePassword: true",

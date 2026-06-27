@@ -24,7 +24,6 @@ from typer.testing import CliRunner
 from infrakit_cli import app, initialize_iac_config
 from infrakit_cli.iac_config import IAC_CONFIG
 
-
 runner = CliRunner()
 
 
@@ -67,7 +66,15 @@ class TestInitRejectsInvalidIacTool:
         """Passing an unknown IaC tool should exit with code 1."""
         result = runner.invoke(
             app,
-            ["init", "my-project", "--ai", "claude", "--iac", "nonexistent-tool", "--ignore-agent-tools"],
+            [
+                "init",
+                "my-project",
+                "--ai",
+                "claude",
+                "--iac",
+                "nonexistent-tool",
+                "--ignore-agent-tools",
+            ],
         )
         assert result.exit_code == 1
         assert "nonexistent-tool" in result.output or "invalid" in result.output.lower()
@@ -176,9 +183,7 @@ class TestInitializeIacConfigTerraform:
         initialize_iac_config(project_dir, "nonexistent-tool", "claude")
         # Should not create .infrakit/config.yaml since the tool is unknown
         config_file = project_dir / ".infrakit" / "config.yaml"
-        assert not config_file.exists(), (
-            "config.yaml should not be created for an unknown IaC tool"
-        )
+        assert not config_file.exists(), "config.yaml should not be created for an unknown IaC tool"
 
     def test_copies_coding_style_template_from_terraform_assets(self, project_dir):
         """coding-style-template.md must be copied and renamed to coding-style.md in .infrakit/ (if running from source)."""
@@ -210,9 +215,7 @@ class TestInitializeIacConfigTerraform:
             / "terraform_engineer.md"
         )
         if src.is_file():
-            dest = (
-                project_dir / ".infrakit" / "agent_personas" / "terraform_engineer.md"
-            )
+            dest = project_dir / ".infrakit" / "agent_personas" / "terraform_engineer.md"
             assert dest.is_file(), (
                 "terraform_engineer.md was not copied to .infrakit/agent_personas/"
             )
@@ -278,14 +281,8 @@ class TestTerraformIacConfigValues:
 
     def test_all_iac_tools_distinct_output_formats(self):
         """Crossplane (yaml) and Terraform (hcl) have distinct output formats."""
-        assert (
-            IAC_CONFIG["crossplane"]["output_format"]
-            != IAC_CONFIG["terraform"]["output_format"]
-        )
+        assert IAC_CONFIG["crossplane"]["output_format"] != IAC_CONFIG["terraform"]["output_format"]
 
     def test_all_iac_tools_distinct_resource_terms(self):
         """Crossplane (composition) and Terraform (module) have distinct resource terms."""
-        assert (
-            IAC_CONFIG["crossplane"]["resource_term"]
-            != IAC_CONFIG["terraform"]["resource_term"]
-        )
+        assert IAC_CONFIG["crossplane"]["resource_term"] != IAC_CONFIG["terraform"]["resource_term"]

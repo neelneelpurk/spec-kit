@@ -2,8 +2,7 @@
 
 from unittest.mock import patch
 
-
-from infrakit_cli import check_tool, StepTracker
+from infrakit_cli import StepTracker, check_tool
 
 
 class TestCheckTool:

@@ -11,6 +11,7 @@ Tests cover:
 """
 
 import pytest
+
 from infrakit_cli.iac_config import IAC_CONFIG, get_iac_choices, get_iac_commands
 
 
@@ -35,9 +36,7 @@ class TestTerraformIacConfig:
         ]
         terraform = IAC_CONFIG["terraform"]
         for field in required_fields:
-            assert field in terraform, (
-                f"terraform config missing required field '{field}'"
-            )
+            assert field in terraform, f"terraform config missing required field '{field}'"
 
     def test_terraform_name(self):
         """Terraform display name should be 'Terraform'."""
@@ -118,9 +117,7 @@ class TestTerraformIacConfig:
     def test_terraform_generic_commands_no_duplicates(self):
         """terraform generic_commands must have no duplicate entries."""
         generic = IAC_CONFIG["terraform"]["generic_commands"]
-        assert len(generic) == len(set(generic)), (
-            "terraform generic_commands contains duplicates"
-        )
+        assert len(generic) == len(set(generic)), "terraform generic_commands contains duplicates"
 
     def test_terraform_no_overlap_between_generic_and_iac_commands(self):
         """terraform generic_commands and iac_commands must not overlap."""

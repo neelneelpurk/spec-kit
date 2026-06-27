@@ -15,7 +15,6 @@ from pathlib import Path
 
 import pytest
 
-
 # Locate the templates/iac/terraform directory relative to this test file.
 REPO_ROOT = Path(__file__).parent.parent
 TERRAFORM_TEMPLATES_DIR = REPO_ROOT / "templates" / "iac" / "terraform"
@@ -121,9 +120,7 @@ class TestTerraformCommandFileFrontmatter:
     def test_frontmatter_present(self, filename):
         """Command file must start with a YAML frontmatter block."""
         content = _read(TERRAFORM_TEMPLATES_DIR / "commands" / filename)
-        assert content.startswith("---"), (
-            f"{filename} must start with YAML frontmatter (---)"
-        )
+        assert content.startswith("---"), f"{filename} must start with YAML frontmatter (---)"
 
     @pytest.mark.parametrize(
         "filename",
@@ -155,9 +152,7 @@ class TestTerraformCommandFileFrontmatter:
     def test_frontmatter_has_argument_hint(self, filename):
         """Frontmatter must contain an argument-hint field."""
         content = _read(TERRAFORM_TEMPLATES_DIR / "commands" / filename)
-        assert "argument-hint:" in content, (
-            f"{filename} frontmatter missing 'argument-hint'"
-        )
+        assert "argument-hint:" in content, f"{filename} frontmatter missing 'argument-hint'"
 
     @pytest.mark.parametrize(
         "filename",
@@ -432,4 +427,3 @@ class TestTerraformAgentPersona:
         """Persona must treat spec.md as the immutable contract."""
         assert "spec.md" in content
         assert "immutable" in content.lower() or "contract" in content.lower()
-

@@ -12,6 +12,7 @@ Tests cover:
 """
 
 import pytest
+
 from infrakit_cli.iac_config import IAC_CONFIG, get_iac_choices, get_iac_commands
 
 
@@ -20,9 +21,7 @@ class TestCloudFormationIacConfig:
 
     def test_cloudformation_present_in_iac_config(self):
         """cloudformation must be a key in IAC_CONFIG."""
-        assert "cloudformation" in IAC_CONFIG, (
-            "cloudformation key missing from IAC_CONFIG"
-        )
+        assert "cloudformation" in IAC_CONFIG, "cloudformation key missing from IAC_CONFIG"
 
     def test_cloudformation_has_all_required_fields(self):
         """CloudFormation config must contain every required field."""
