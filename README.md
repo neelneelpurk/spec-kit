@@ -260,7 +260,7 @@ After `infrakit init`, your agent has these slash commands, prefixed
 |---------|-------------|
 | `infrakit init` | Initialize a project — renders the per-agent layout from bundled prompts |
 | `infrakit check` | Check installed tools (`git`, agent CLIs, per-IaC tools: `kubectl`, `terraform`, `aws`, `cfn-lint`, …) |
-| `infrakit mcp` | Install a pre-defined MCP server recipe into your agent's config |
+| `infrakit mcp` | Add/manage MCP servers (`add` · `list` · `remove` · `doctor`) — writes the native config for Claude, Codex, Gemini, and Copilot |
 | `infrakit version` | Display CLI version and system information |
 
 <details>

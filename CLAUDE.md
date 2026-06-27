@@ -49,13 +49,13 @@ behavioural change to the CLI requires a version note in CHANGELOG.md.
 
 | Module | Responsibility |
 |--------|----------------|
-| `cli.py` | Typer app + the 4 commands: `init`, `check`, `mcp`, `version`. Arg parsing + orchestration only. |
+| `cli.py` | Typer app + the commands `init`, `check`, `version`, and the `mcp` sub-app (wired via `app.add_typer`). Arg parsing + orchestration only. |
 | `agent_config.py` | `AGENT_CONFIG` — per-agent layout data (folder, command format, extension, args token, `supports_subagents`, `extras`). |
 | `iac_config.py` | `IAC_CONFIG` — per-IaC-tool data (name, tools, output_format, resource_term, `generic_commands`, `iac_commands`). |
 | `template_renderer.py` | `materialize_project()` — copies templates into the project, renders per-agent variants (TOML wrap, Copilot pairs, Claude subagents, path rewrites). Runtime counterpart to the old release-time bash. |
 | `bootstrap.py` | `initialize_iac_config()` — writes `.infrakit/` + `.infrakit_tracks/` (config.yaml, context/coding-style/tagging, tracks registry, memory dir) then calls the renderer. |
 | `skills.py` | `--ai-skills` install (commands → agent skills) + `SKILL_DESCRIPTIONS` + project-context seeding. |
-| `mcp.py` / `mcp_config.py` | `infrakit mcp` recipe install + `MCP_RECIPES`. |
+| `mcp.py` / `mcp_config.py` | `infrakit mcp [add\|list\|remove\|doctor]` provisioning. `mcp_config.py` = the `McpServer`/`EnvVar` model + bundled `MCP_RECIPES` catalogue. `mcp.py` = per-agent config **writers** behind one interface (Claude `.mcp.json` · Codex `.codex/config.toml` · Gemini `.gemini/settings.json` `httpUrl` · Copilot `.vscode/mcp.json` `servers`+`inputs` · generic markdown). Pure text transforms (`add_server`/`list_servers`/`remove_server`) wrapped by `provision`/`installed`/`uninstall`. Transports: stdio + Streamable HTTP (`http`); `sse` legacy. Secrets are referenced, never written. |
 | `tracker.py`, `interactive.py`, `banner.py`, `console.py`, `tools.py`, `git_utils.py`, `github_api.py` | UI primitives, tool detection, git, optional version check. |
 
 ## How rendering works (the key flow)

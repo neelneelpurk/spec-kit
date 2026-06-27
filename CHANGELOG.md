@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### MCP provisioning overhaul
+
+`infrakit mcp` now writes a working MCP configuration for **every** supported
+agent in that agent's own format — previously only Claude got a real config and
+the rest got a manual copy-paste block.
+
+- **Per-agent config writers** — Claude `.mcp.json`, Codex `.codex/config.toml`
+  (`[mcp_servers.*]`), Gemini `.gemini/settings.json` (`httpUrl` for Streamable
+  HTTP), Copilot `.vscode/mcp.json` (`servers` + `inputs`); `generic` keeps a
+  documented markdown fallback. Each agent is one adapter behind a single
+  `add_server` / `list_servers` / `remove_server` interface.
+- **Modern transports** — stdio + Streamable HTTP (`type: "http"`); `sse` is
+  accepted as legacy. The DeepWiki recipe is corrected from `sse` to `http`.
+- **Non-interactive + lifecycle** — `infrakit mcp add <recipe> [--agent] [--all]`,
+  custom servers (`--command` / `--url`), plus `list`, `remove`, and `doctor`.
+  Bare `infrakit mcp` still launches the interactive picker.
+- **Secrets** — environment variables render as references (`${VAR}` /
+  `${input:...}`); no secret is ever written to disk (covered by a test).
+- New `tomlkit` dependency for correct, round-trip Codex TOML editing.
+- Design + rationale: [specs/mcp-overhaul-prd.md](specs/mcp-overhaul-prd.md).
+
 Repository packaging and presentation are brought up to open-source community
 standard (no CLI behaviour change, so no release is cut by these).
 

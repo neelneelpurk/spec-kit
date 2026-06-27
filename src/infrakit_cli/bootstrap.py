@@ -136,7 +136,7 @@ def initialize_iac_config(
         mcp_use_md.write_text(
             "# Installed MCP Servers\n\n"
             "MCP servers configured for this project.\n"
-            "Run `infrakit mcp` to add more.\n\n"
+            "Run `infrakit mcp add <recipe>` (or just `infrakit mcp`) to add more.\n\n"
             "| MCP | Description | Tools | Usage |\n"
             "|-----|-------------|-------|-------|\n"
             "| — | — | — | — |\n",

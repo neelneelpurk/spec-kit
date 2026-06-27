@@ -8,7 +8,7 @@ The package's public API is split into focused submodules:
   ``.infrakit/`` and ``.infrakit_tracks/`` on a freshly-initialised project.
 - :mod:`infrakit_cli.template_renderer` — runtime per-agent transformer.
 - :mod:`infrakit_cli.skills` — installs prompt files as agent skills.
-- :mod:`infrakit_cli.mcp` — MCP recipe install helpers.
+- :mod:`infrakit_cli.mcp` — MCP provisioning + per-agent config writers.
 - :mod:`infrakit_cli.tracker` — :class:`StepTracker` UI primitive.
 - :mod:`infrakit_cli.interactive` — keyboard input + arrow-key menu.
 - :mod:`infrakit_cli.banner` — ASCII banner and Typer group override.
@@ -25,7 +25,7 @@ and downstream callers continue to use ``from infrakit_cli import X``.
 
 from .banner import BannerGroup, show_banner
 from .bootstrap import initialize_iac_config
-from .cli import app, callback, check, init, main, mcp, version
+from .cli import app, callback, check, init, main, version
 from .console import console
 from .git_utils import init_git_repo, is_git_repo
 from .interactive import get_key, select_with_arrows
@@ -34,7 +34,10 @@ from .mcp import (
     _build_mcp_server_entry,
     _read_mcp_json,
     _update_mcp_use_table,
+    mcp_app,
+    provision,
 )
+from .mcp_config import MCP_RECIPES, EnvVar, McpServer
 from .skills import (
     AGENT_SKILLS_DIR_OVERRIDES,
     DEFAULT_SKILLS_DIR,
@@ -59,7 +62,6 @@ __all__ = [
     "check",
     "init",
     "main",
-    "mcp",
     "version",
     # UI primitives
     "BannerGroup",
@@ -80,6 +82,11 @@ __all__ = [
     "CLAUDE_LOCAL_PATH",
     "SCRIPT_TYPE_CHOICES",
     # MCP
+    "mcp_app",
+    "provision",
+    "McpServer",
+    "EnvVar",
+    "MCP_RECIPES",
     "_build_mcp_markdown_block",
     "_build_mcp_server_entry",
     "_read_mcp_json",

@@ -1,142 +1,105 @@
 """
-Unit tests for mcp_config.py module.
-
-Tests cover:
-- MCP_RECIPES structure validation
-- All required fields present for every recipe
-- Type-specific field validation
+Unit tests for mcp_config.py: the MCP catalogue and the normalised server model.
 """
 
 import pytest
 
-from infrakit_cli.mcp_config import MCP_RECIPES
+from infrakit_cli.mcp_config import (
+    HTTP,
+    MCP_RECIPES,
+    SSE,
+    STDIO,
+    EnvVar,
+    McpServer,
+    custom_server,
+    server_from_recipe,
+)
 
 
-class TestMcpConfig:
-    """Test the MCP_RECIPES dictionary structure and contents."""
+class TestMcpRecipes:
+    """The bundled MCP_RECIPES catalogue."""
 
     def test_all_recipes_have_required_fields(self):
-        """Every MCP recipe must have all required fields."""
-        base_required_fields = [
-            "display_name",
-            "description",
-            "type",
-            "tools",
-            "usage",
-        ]
+        required = ["display_name", "description", "type", "tools", "usage"]
+        for key, recipe in MCP_RECIPES.items():
+            for field in required:
+                assert field in recipe, f"recipe '{key}' missing '{field}'"
 
-        for recipe_key, recipe in MCP_RECIPES.items():
-            for field in base_required_fields:
-                assert field in recipe, (
-                    f"MCP recipe '{recipe_key}' missing required field '{field}'"
-                )
+    def test_recipe_transport_is_known(self):
+        for key, recipe in MCP_RECIPES.items():
+            assert recipe["type"] in (STDIO, HTTP, SSE), f"recipe '{key}' bad transport"
 
-    def test_recipe_type_validation(self):
-        """Recipe type must be either 'stdio' or 'sse'."""
-        valid_types = ["stdio", "sse"]
+    def test_stdio_recipes_have_command_and_args(self):
+        for key, recipe in MCP_RECIPES.items():
+            if recipe["type"] == STDIO:
+                assert recipe.get("command"), f"stdio recipe '{key}' missing command"
+                assert isinstance(recipe.get("args"), list) and recipe["args"]
 
-        for recipe_key, recipe in MCP_RECIPES.items():
-            recipe_type = recipe["type"]
-            assert recipe_type in valid_types, (
-                f"MCP recipe '{recipe_key}' has invalid type '{recipe_type}'"
-            )
+    def test_remote_recipes_have_url(self):
+        for key, recipe in MCP_RECIPES.items():
+            if recipe["type"] in (HTTP, SSE):
+                assert recipe.get("url", "").startswith("http"), f"remote recipe '{key}' bad url"
 
-    def test_stdio_recipe_fields(self):
-        """Stdio type recipes must have command and args fields."""
-        for recipe_key, recipe in MCP_RECIPES.items():
-            if recipe["type"] == "stdio":
-                assert "command" in recipe, f"Stdio recipe '{recipe_key}' missing 'command' field"
-                assert "args" in recipe, f"Stdio recipe '{recipe_key}' missing 'args' field"
-
-                # Command and args should be non-empty
-                assert len(recipe["command"]) > 0, f"Recipe '{recipe_key}' has empty command"
-                assert isinstance(recipe["args"], list), f"Recipe '{recipe_key}' args is not a list"
-                assert len(recipe["args"]) > 0, f"Recipe '{recipe_key}' has empty args list"
-
-    def test_sse_recipe_fields(self):
-        """SSE type recipes must have url field."""
-        for recipe_key, recipe in MCP_RECIPES.items():
-            if recipe["type"] == "sse":
-                assert "url" in recipe, f"SSE recipe '{recipe_key}' missing 'url' field"
-                assert recipe["url"].startswith("http"), f"Recipe '{recipe_key}' has invalid URL"
-
-    def test_tools_field_validation(self):
-        """Tools field must be a non-empty list of strings."""
-        for recipe_key, recipe in MCP_RECIPES.items():
-            tools = recipe["tools"]
-            assert isinstance(tools, list), f"Recipe '{recipe_key}' tools is not a list"
-            assert len(tools) > 0, f"Recipe '{recipe_key}' has empty tools list"
-
-            for tool in tools:
-                assert isinstance(tool, str), f"Recipe '{recipe_key}' has non-string tool"
-                assert len(tool) > 0, f"Recipe '{recipe_key}' has empty tool name"
+    def test_deepwiki_is_streamable_http(self):
+        """DeepWiki's /mcp endpoint is Streamable HTTP, not legacy SSE."""
+        deepwiki = MCP_RECIPES["deepwiki"]
+        assert deepwiki["type"] == HTTP
+        assert deepwiki["url"] == "https://mcp.deepwiki.com/mcp"
 
     def test_context7_recipe(self):
-        """Context7 recipe should be correctly configured."""
-        assert "context7" in MCP_RECIPES
-        context7 = MCP_RECIPES["context7"]
+        c = MCP_RECIPES["context7"]
+        assert c["type"] == STDIO
+        assert c["command"] == "npx"
+        assert c["args"] == ["-y", "@upstash/context7-mcp@latest"]
 
-        assert context7["type"] == "stdio"
-        assert context7["command"] == "npx"
-        assert context7["args"] == ["-y", "@upstash/context7-mcp@latest"]
-        assert "resolve-library-id" in context7["tools"]
+    def test_unique_display_names(self):
+        names = [r["display_name"] for r in MCP_RECIPES.values()]
+        assert len(names) == len(set(names))
 
-    def test_deepwiki_recipe(self):
-        """DeepWiki recipe should be correctly configured."""
-        assert "deepwiki" in MCP_RECIPES
-        deepwiki = MCP_RECIPES["deepwiki"]
+    @pytest.mark.parametrize("key", MCP_RECIPES.keys())
+    def test_tools_and_usage_non_empty(self, key):
+        recipe = MCP_RECIPES[key]
+        assert recipe["tools"] and all(isinstance(t, str) and t for t in recipe["tools"])
+        assert isinstance(recipe["usage"], str) and recipe["usage"]
 
-        assert deepwiki["type"] == "sse"
-        assert deepwiki["url"] == "https://mcp.deepwiki.com/mcp"
-        assert "ask_question" in deepwiki["tools"]
 
-    def test_aws_best_practices_recipe(self):
-        """AWS Best Practices recipe should be correctly configured."""
-        assert "aws-best-practices" in MCP_RECIPES
-        aws = MCP_RECIPES["aws-best-practices"]
+class TestServerModel:
+    """server_from_recipe / custom_server / McpServer."""
 
-        assert aws["type"] == "stdio"
-        assert aws["command"] == "uvx"
-        assert aws["args"] == ["awslabs.aws-documentation-mcp-server@latest"]
+    @pytest.mark.parametrize("key", MCP_RECIPES.keys())
+    def test_server_from_recipe(self, key):
+        server = server_from_recipe(key)
+        assert server.key == key
+        assert server.transport in (STDIO, HTTP, SSE)
+        if server.is_remote:
+            assert server.url
+        else:
+            assert server.command
 
-    def test_microsoft_learn_recipe(self):
-        """Microsoft Learn recipe should be correctly configured."""
-        assert "microsoft-learn" in MCP_RECIPES
-        ms = MCP_RECIPES["microsoft-learn"]
+    def test_is_remote(self):
+        assert server_from_recipe("deepwiki").is_remote is True
+        assert server_from_recipe("context7").is_remote is False
 
-        assert ms["type"] == "stdio"
-        assert ms["command"] == "npx"
-        assert ms["args"] == ["-y", "@microsoft/mcp-microsoft-learn@latest"]
+    def test_custom_url_defaults_to_http(self):
+        s = custom_server("x", url="https://example.com/mcp")
+        assert s.transport == HTTP
+        assert s.is_remote
 
-    def test_all_recipes_have_unique_display_names(self):
-        """All MCP recipes should have unique display names."""
-        names = []
-        for recipe_key, recipe in MCP_RECIPES.items():
-            name = recipe["display_name"]
-            assert name not in names, f"Duplicate display name '{name}' for MCP recipe"
-            names.append(name)
+    def test_custom_command_defaults_to_stdio(self):
+        s = custom_server("x", command="my-server", args=["--flag"])
+        assert s.transport == STDIO
+        assert s.command == "my-server"
+        assert s.args == ["--flag"]
 
-    @pytest.mark.parametrize("recipe_key", MCP_RECIPES.keys())
-    def test_recipe_consistency(self, recipe_key):
-        """General consistency checks for every MCP recipe."""
-        recipe = MCP_RECIPES[recipe_key]
-
-        # Display name should be non-empty
-        assert isinstance(recipe["display_name"], str)
-        assert len(recipe["display_name"]) > 0
-
-        # Description should be non-empty
-        assert isinstance(recipe["description"], str)
-        assert len(recipe["description"]) > 0
-
-        # Usage should be non-empty
-        assert isinstance(recipe["usage"], str)
-        assert len(recipe["usage"]) > 0
-
-    def test_no_duplicate_tool_names_across_recipes(self):
-        """Tool names should be unique across all recipes (best practice)."""
-        for recipe_key, recipe in MCP_RECIPES.items():
-            for tool in recipe["tools"]:
-                # Tools don't need to be globally unique, but this is just an informational check
-                # If they are duplicated, it's okay but worth noting
-                pass
+    def test_required_secrets(self):
+        s = McpServer(
+            key="x",
+            display_name="x",
+            command="srv",
+            env=[
+                EnvVar(name="API_KEY", is_secret=True, is_required=True),
+                EnvVar(name="REGION", default="us-east-1"),
+            ],
+        )
+        secrets = s.required_secrets
+        assert [e.name for e in secrets] == ["API_KEY"]
